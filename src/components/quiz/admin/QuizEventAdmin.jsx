@@ -37,6 +37,19 @@ export default function QuizEventAdmin({ session }) {
       .then(({ data }) => { if (data) setQuestions(data) })
   }, [quizEvent?.status])
 
+  async function handleReset() {
+    if (!window.confirm('¿Reiniciar el quiz? Se borrarán todas las respuestas y puntajes de los jugadores.')) return
+    const playerIds = players.map(p => p.id)
+    if (playerIds.length > 0) {
+      await supabase.from('quiz_answers').delete().in('quiz_player_id', playerIds)
+      await supabase.from('quiz_players').update({ total_score: 0 }).eq('quiz_event_id', eventId)
+    }
+    await supabase.from('quiz_events')
+      .update({ status: 'lobby', current_question_index: 0, question_started_at: null })
+      .eq('id', eventId)
+    await fetchAll()
+  }
+
   async function fetchAll() {
     const [evRes, qRes, pRes] = await Promise.all([
       supabase.from('quiz_events').select('*').eq('id', eventId).eq('admin_id', session.user.id).single(),
@@ -125,7 +138,12 @@ export default function QuizEventAdmin({ session }) {
         {/* FINALIZADO */}
         {quizEvent.status === 'finished' && (
           <div className="space-y-4">
-            <h3 className="font-semibold text-gray-800">🏁 Ranking final</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-gray-800">🏁 Ranking final</h3>
+              <button onClick={handleReset} className="btn-secondary text-sm py-2 px-4">
+                ↺ Reiniciar quiz
+              </button>
+            </div>
             <QuizRankingTable players={players} />
           </div>
         )}

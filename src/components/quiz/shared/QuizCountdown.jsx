@@ -23,7 +23,7 @@ export default function QuizCountdown({ totalSeconds, startedAt, onExpire }) {
   const color = pct > 0.5 ? '#34d399' : pct > 0.25 ? '#fbbf24' : '#f87171'
 
   return (
-    <div className="flex flex-col items-center gap-1">
+    <div className="relative w-[72px] h-[72px]">
       <svg width="72" height="72" className="rotate-[-90deg]">
         <circle cx="36" cy="36" r={radius} fill="none" stroke="#e5e7eb" strokeWidth="5" />
         <circle
@@ -36,7 +36,7 @@ export default function QuizCountdown({ totalSeconds, startedAt, onExpire }) {
           style={{ transition: 'stroke-dasharray 0.1s linear, stroke 0.3s' }}
         />
       </svg>
-      <span className="text-2xl font-bold tabular-nums -mt-12 text-gray-700">
+      <span className="absolute inset-0 flex items-center justify-center text-2xl font-bold tabular-nums text-gray-700">
         {Math.ceil(remaining)}
       </span>
     </div>

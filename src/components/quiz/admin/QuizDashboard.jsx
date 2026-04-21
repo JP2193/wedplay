@@ -12,6 +12,7 @@ export default function QuizDashboard({ session }) {
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [deletingId, setDeletingId] = useState(null)
+  const [resettingId, setResettingId] = useState(null)
 
   useEffect(() => { fetchEvents() }, [])
 
@@ -32,6 +33,22 @@ export default function QuizDashboard({ session }) {
     await supabase.from('quiz_events').delete().eq('id', id)
     setEvents(prev => prev.filter(ev => ev.id !== id))
     setDeletingId(null)
+  }
+
+  async function handleReset(e, ev) {
+    e.stopPropagation()
+    if (!window.confirm('¿Reiniciar el quiz? Se borrarán todas las respuestas y puntajes.')) return
+    setResettingId(ev.id)
+    const { data: playerData } = await supabase.from('quiz_players').select('id').eq('quiz_event_id', ev.id)
+    if (playerData?.length > 0) {
+      await supabase.from('quiz_answers').delete().in('quiz_player_id', playerData.map(p => p.id))
+      await supabase.from('quiz_players').update({ total_score: 0 }).eq('quiz_event_id', ev.id)
+    }
+    await supabase.from('quiz_events')
+      .update({ status: 'lobby', current_question_index: 0, question_started_at: null })
+      .eq('id', ev.id)
+    setEvents(prev => prev.map(e => e.id === ev.id ? { ...e, status: 'lobby' } : e))
+    setResettingId(null)
   }
 
   async function handleLogout() { await supabase.auth.signOut() }
@@ -86,6 +103,16 @@ export default function QuizDashboard({ session }) {
                 </p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
+                {ev.status === 'finished' && (
+                  <button
+                    onClick={e => handleReset(e, ev)}
+                    disabled={resettingId === ev.id}
+                    className="text-gray-300 hover:text-amber-400 transition-colors p-1 rounded-lg hover:bg-amber-50 text-sm"
+                    title="Reiniciar quiz"
+                  >
+                    {resettingId === ev.id ? '...' : '↺'}
+                  </button>
+                )}
                 <button
                   onClick={e => handleDelete(e, ev.id)}
                   disabled={deletingId === ev.id}
