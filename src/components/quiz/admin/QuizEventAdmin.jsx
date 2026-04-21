@@ -22,7 +22,14 @@ export default function QuizEventAdmin({ session }) {
     const channel = supabase
       .channel(`quiz-event-admin-${eventId}`)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'quiz_events', filter: `id=eq.${eventId}` },
-        payload => setQuizEvent(payload.new)
+        payload => {
+          setQuizEvent(payload.new)
+          if (payload.new.status === 'finished') {
+            supabase.from('quiz_players').select('id, full_name, total_score')
+              .eq('quiz_event_id', eventId).order('total_score', { ascending: false })
+              .then(({ data }) => { if (data) setPlayers(data) })
+          }
+        }
       )
       .subscribe()
 
@@ -36,13 +43,6 @@ export default function QuizEventAdmin({ session }) {
       .then(({ data }) => { if (data) setQuestions(data) })
   }, [quizEvent?.status])
 
-  // Re-fetch jugadores con puntajes actualizados al llegar al ranking final
-  useEffect(() => {
-    if (!quizEvent || quizEvent.status !== 'finished') return
-    supabase.from('quiz_players').select('id, full_name, total_score')
-      .eq('quiz_event_id', eventId).order('total_score', { ascending: false })
-      .then(({ data }) => { if (data) setPlayers(data) })
-  }, [quizEvent?.status])
 
   async function handleReset() {
     if (!window.confirm('¿Reiniciar el quiz? Se borrarán todas las respuestas y puntajes de los jugadores.')) return
