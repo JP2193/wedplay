@@ -1,6 +1,17 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 
+const TOKEN_KEY = (eventId, fullName) => `bingo-token-${eventId}-${fullName}`
+
+function getOrCreateToken(eventId, fullName) {
+  const key = TOKEN_KEY(eventId, fullName)
+  const existing = localStorage.getItem(key)
+  if (existing) return existing
+  const token = crypto.randomUUID()
+  localStorage.setItem(key, token)
+  return token
+}
+
 function shuffle(arr) {
   const a = [...arr]
   for (let i = a.length - 1; i > 0; i--) {
@@ -49,6 +60,9 @@ export default function JoinScreen({ onJoined }) {
     setLoading(true)
     setError(null)
 
+    // Recuperar o crear token de sesión
+    const sessionToken = getOrCreateToken(eventData.id, fullName)
+
     // Buscar jugador existente
     const { data: existingPlayer } = await supabase
       .from('players')
@@ -67,7 +81,8 @@ export default function JoinScreen({ onJoined }) {
         .map(id => questions.find(q => q.id === id))
         .filter(Boolean)
 
-      onJoined(existingPlayer, ordered)
+      // Pasar el token para que GameScreen pueda hacer updates
+      onJoined({ ...existingPlayer, _sessionToken: sessionToken }, ordered)
       setLoading(false)
       return
     }
@@ -115,6 +130,7 @@ export default function JoinScreen({ onJoined }) {
         assigned_questions: assignedIds,
         answers: {},
         finished: false,
+        session_token: sessionToken,
       })
       .select()
       .single()
@@ -125,7 +141,7 @@ export default function JoinScreen({ onJoined }) {
       return
     }
 
-    onJoined(newPlayer, selected)
+    onJoined({ ...newPlayer, _sessionToken: sessionToken }, selected)
     setLoading(false)
   }
 

@@ -80,6 +80,7 @@ function BingoModal({ onBingo, onBack, loading }) {
 }
 
 export default function GameScreen({ player, questions, onFinished }) {
+  // _sessionToken viene de JoinScreen vía player prop
   const [current, setCurrent] = useState(0)
   const [answers, setAnswers] = useState(() => loadLocalAnswers(player.id, player.answers || {}))
   const [saving, setSaving] = useState(false)
@@ -97,10 +98,11 @@ export default function GameScreen({ player, questions, onFinished }) {
 
   async function persistAnswers(updatedAnswers) {
     setSaving(true)
-    await supabase
-      .from('players')
-      .update({ answers: updatedAnswers })
-      .eq('id', player.id)
+    await supabase.rpc('update_player_answers', {
+      p_player_id:     player.id,
+      p_session_token: player._sessionToken,
+      p_answers:       updatedAnswers,
+    })
     setSaving(false)
   }
 
@@ -124,10 +126,11 @@ export default function GameScreen({ player, questions, onFinished }) {
 
   async function handleBingo() {
     setFinishing(true)
-    await supabase
-      .from('players')
-      .update({ finished: true, finished_at: new Date().toISOString(), bingo_called: true })
-      .eq('id', player.id)
+    await supabase.rpc('finish_player', {
+      p_player_id:     player.id,
+      p_session_token: player._sessionToken,
+      p_bingo_called:  true,
+    })
     localStorage.removeItem(LS_KEY(player.id))
     onFinished()
   }
@@ -224,7 +227,15 @@ export default function GameScreen({ player, questions, onFinished }) {
         <UnansweredModal
           count={questions.filter(q => !answers[q.id]?.trim()).length}
           onReview={() => setShowModal(null)}
-          onContinue={() => setShowModal('bingo')}
+          onContinue={async () => {
+            await supabase.rpc('finish_player', {
+              p_player_id:     player.id,
+              p_session_token: player._sessionToken,
+              p_bingo_called:  false,
+            })
+            localStorage.removeItem(LS_KEY(player.id))
+            onFinished()
+          }}
         />
       )}
 
