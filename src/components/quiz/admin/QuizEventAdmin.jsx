@@ -30,11 +30,18 @@ export default function QuizEventAdmin({ session }) {
   }, [eventId])
 
   // Re-fetch preguntas si al pasar a 'question' el array está vacío
-  // (puede pasar si las preguntas se agregaron después del montaje inicial)
   useEffect(() => {
     if (!quizEvent || quizEvent.status !== 'question' || questions.length > 0) return
     supabase.from('quiz_questions').select('*').eq('quiz_event_id', eventId).order('position')
       .then(({ data }) => { if (data) setQuestions(data) })
+  }, [quizEvent?.status])
+
+  // Re-fetch jugadores con puntajes actualizados al llegar al ranking final
+  useEffect(() => {
+    if (!quizEvent || quizEvent.status !== 'finished') return
+    supabase.from('quiz_players').select('id, full_name, total_score')
+      .eq('quiz_event_id', eventId).order('total_score', { ascending: false })
+      .then(({ data }) => { if (data) setPlayers(data) })
   }, [quizEvent?.status])
 
   async function handleReset() {
