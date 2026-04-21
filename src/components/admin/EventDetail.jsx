@@ -85,7 +85,7 @@ export default function EventDetail({ session }) {
       </div>
 
       <main className="max-w-2xl mx-auto px-4 py-5">
-        {tab === 'questions' && <QuestionList eventId={eventId} />}
+        {tab === 'questions' && <QuestionList event={event} />}
         {tab === 'finished' && <FinishedPlayers eventId={eventId} />}
       </main>
     </div>

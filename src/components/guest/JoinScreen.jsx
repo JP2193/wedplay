@@ -85,8 +85,27 @@ export default function JoinScreen({ onJoined }) {
       return
     }
 
-    const count = Math.min(eventData.questions_per_player, allQuestions.length)
-    const selected = shuffle(allQuestions).slice(0, count)
+    let selected = []
+
+    if (eventData.dynamic_mode) {
+      const easyPool = shuffle(allQuestions.filter(q => q.difficulty === 'easy'))
+      const hardPool = shuffle(allQuestions.filter(q => q.difficulty === 'hard'))
+
+      if (easyPool.length < eventData.easy_count || hardPool.length < eventData.hard_count) {
+        setError('El banco de preguntas está incompleto. Avisale al organizador.')
+        setLoading(false)
+        return
+      }
+
+      selected = shuffle([
+        ...easyPool.slice(0, eventData.easy_count),
+        ...hardPool.slice(0, eventData.hard_count),
+      ])
+    } else {
+      const count = Math.min(eventData.questions_per_player, allQuestions.length)
+      selected = shuffle(allQuestions).slice(0, count)
+    }
+
     const assignedIds = selected.map(q => q.id)
 
     const { data: newPlayer, error: insertError } = await supabase
