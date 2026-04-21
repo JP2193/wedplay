@@ -16,6 +16,7 @@ export default function AdivinaAdminSection() {
       .from('adivina_events')
       .select('*')
       .eq('room_id', room.id)
+      .eq('admin_id', session.user.id)
       .maybeSingle()
       .then(({ data }) => {
         if (data) {

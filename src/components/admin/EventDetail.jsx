@@ -24,7 +24,7 @@ export default function EventDetail({ session }) {
       .single()
 
     if (error || !data) {
-      navigate('/admin/bingo')
+      navigate('/admin', { replace: true })
       return
     }
     setEvent(data)
