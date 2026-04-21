@@ -98,21 +98,6 @@ export default function QuizQuestion({ quizEvent, question, player, onResult }) 
           ))}
         </div>
 
-        {/* Feedback — solo visible tras revelar */}
-        {revealed && result && (
-          <div className={`rounded-2xl p-4 text-center space-y-1 ${result.is_correct ? 'bg-emerald-500/20' : 'bg-red-500/20'}`}>
-            <p className={`text-lg font-bold ${result.is_correct ? 'text-emerald-400' : 'text-red-400'}`}>
-              {result.is_correct ? '¡Correcto! 🎉' : 'Incorrecto 😔'}
-            </p>
-            {result.is_correct && (
-              <p className="text-white/70 text-sm">
-                +{result.base_score} base {result.speed_bonus > 0 && `+${result.speed_bonus} velocidad`}
-                <span className="font-bold text-white"> = {result.total_score} pts</span>
-              </p>
-            )}
-          </div>
-        )}
-
         {selected && !result && (
           <div className="text-center text-gray-400 text-sm animate-pulse">Guardando...</div>
         )}

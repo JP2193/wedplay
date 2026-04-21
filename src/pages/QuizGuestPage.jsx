@@ -79,7 +79,8 @@ export default function QuizGuestPage() {
   }
 
   if (quizEvent.status === 'ranking') {
-    return <QuizRankingWait player={player} lastResult={lastResult} question={currentQuestion} />
+    const isLastQuestion = quizEvent.current_question_index >= questions.length - 1
+    return <QuizRankingWait player={player} lastResult={lastResult} question={currentQuestion} isLastQuestion={isLastQuestion} />
   }
 
   if (quizEvent.status === 'finished') {

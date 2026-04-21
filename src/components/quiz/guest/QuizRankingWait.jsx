@@ -1,4 +1,4 @@
-export default function QuizRankingWait({ player, lastResult, question }) {
+export default function QuizRankingWait({ player, lastResult, question, isLastQuestion }) {
   const didAnswer = lastResult !== null
   const isCorrect = lastResult?.is_correct
 
@@ -32,7 +32,7 @@ export default function QuizRankingWait({ player, lastResult, question }) {
         )}
 
         <div className="border-t border-white/10 pt-4 space-y-1">
-          <p className="text-gray-400 text-sm">Esperá la siguiente pregunta...</p>
+          <p className="text-gray-400 text-sm">{isLastQuestion ? 'Esperando resultados...' : 'Esperá la siguiente pregunta...'}</p>
           <p className="text-gray-500 text-xs">
             Puntaje actual:{' '}
             <span className="text-white font-bold">{player.total_score?.toLocaleString() ?? 0} pts</span>

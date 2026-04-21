@@ -72,6 +72,13 @@ export default function QuizEventAdmin({ session }) {
   const currentQuestion = questions[quizEvent.current_question_index]
   const isLive = ['question', 'ranking', 'finished'].includes(quizEvent.status)
 
+  async function handleTimerChange(newSeconds) {
+    const val = Math.min(60, Math.max(5, Number(newSeconds)))
+    if (isNaN(val) || val === quizEvent.timer_seconds) return
+    const { data } = await supabase.from('quiz_events').update({ timer_seconds: val }).eq('id', eventId).select().single()
+    if (data) setQuizEvent(data)
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-100 px-4 py-4">
@@ -80,7 +87,21 @@ export default function QuizEventAdmin({ session }) {
           <h1 className="font-semibold text-gray-800 text-lg">{quizEvent.name}</h1>
           <div className="flex items-center gap-4 text-sm text-gray-400">
             <span>Código: <span className="font-mono font-semibold text-gray-700">{quizEvent.code}</span></span>
-            <span>{quizEvent.timer_seconds}s por pregunta</span>
+            {!isLive ? (
+              <span className="flex items-center gap-1">
+                <input
+                  type="number"
+                  min={5} max={60}
+                  defaultValue={quizEvent.timer_seconds}
+                  onBlur={e => handleTimerChange(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleTimerChange(e.target.value)}
+                  className="w-12 text-center border border-gray-200 rounded-lg text-sm text-gray-700 py-0.5 focus:outline-none focus:border-rose-300"
+                />
+                <span>s por pregunta</span>
+              </span>
+            ) : (
+              <span>{quizEvent.timer_seconds}s por pregunta</span>
+            )}
             <span>{questions.length} preguntas</span>
           </div>
         </div>
