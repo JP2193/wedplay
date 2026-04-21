@@ -9,11 +9,7 @@ export default function GuestPage() {
   const [finished, setFinished] = useState(false)
 
   if (finished) {
-    return (
-      <ThankYouScreen
-        onModify={() => setFinished(false)}
-      />
-    )
+    return <ThankYouScreen playerId={player.id} />
   }
 
   if (!player) {
@@ -32,7 +28,6 @@ export default function GuestPage() {
     <GameScreen
       player={player}
       questions={questions}
-      alreadyFinished={player.finished}
       onFinished={() => setFinished(true)}
     />
   )

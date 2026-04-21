@@ -24,7 +24,7 @@ export default function FinishedPlayers({ eventId }) {
   async function fetchPlayers() {
     const { data, error } = await supabase
       .from('players')
-      .select('id, full_name, finished_at')
+      .select('id, full_name, finished_at, bingo_called')
       .eq('event_id', eventId)
       .eq('finished', true)
       .order('finished_at', { ascending: true })
@@ -58,10 +58,17 @@ export default function FinishedPlayers({ eventId }) {
       )}
 
       {players.map((p, idx) => (
-        <div key={p.id} className="card py-3 px-4 flex items-center gap-3">
+        <div key={p.id} className={`card py-3 px-4 flex items-center gap-3 ${p.bingo_called ? 'border-rose-200 bg-rose-50' : ''}`}>
           <span className="text-sm font-semibold text-rose-300 w-6 shrink-0">#{idx + 1}</span>
           <div className="flex-1">
-            <p className="text-gray-800 font-medium text-sm">{p.full_name}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-gray-800 font-medium text-sm">{p.full_name}</p>
+              {p.bingo_called && (
+                <span className="text-xs font-bold bg-rose-400 text-white px-2 py-0.5 rounded-full">
+                  🎊 BINGO
+                </span>
+              )}
+            </div>
             <p className="text-gray-400 text-xs">{formatTime(p.finished_at)}</p>
           </div>
           <span className="text-green-400 text-sm">✓</span>
