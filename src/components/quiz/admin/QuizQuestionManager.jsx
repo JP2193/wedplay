@@ -9,6 +9,61 @@ function emptyForm() {
   return { text: '', option_a: '', option_b: '', option_c: '', option_d: '', correct_option: 'A' }
 }
 
+const isFormValid = (f) => f.text.trim() && f.option_a.trim() && f.option_b.trim() && f.option_c.trim() && f.option_d.trim()
+
+function QuestionForm({ f, setF, onSubmit, onCancel, submitLabel, loading: isLoading, radioName }) {
+  return (
+    <div className="space-y-3 bg-gray-50 rounded-xl p-4">
+      <input
+        type="text"
+        className="input-field"
+        placeholder="Texto de la pregunta..."
+        value={f.text}
+        onChange={e => setF('text', e.target.value)}
+      />
+      <div className="grid grid-cols-2 gap-2">
+        {OPTIONS.map(opt => {
+          const key = `option_${opt.toLowerCase()}`
+          return (
+            <div key={opt} className={`flex items-center gap-2 border rounded-lg p-2 ${OPTION_COLORS[opt]}`}>
+              <span className={`font-bold text-sm w-5 shrink-0 ${OPTION_TEXT[opt]}`}>{opt}</span>
+              <input
+                type="text"
+                className="flex-1 bg-transparent text-sm outline-none placeholder-gray-400"
+                placeholder={`Opción ${opt}...`}
+                value={f[key]}
+                onChange={e => setF(key, e.target.value)}
+              />
+            </div>
+          )
+        })}
+      </div>
+      <div className="flex items-center gap-3">
+        <span className="text-sm text-gray-600 font-medium">Correcta:</span>
+        {OPTIONS.map(opt => (
+          <label key={opt} className="flex items-center gap-1 cursor-pointer">
+            <input
+              type="radio"
+              name={radioName}
+              value={opt}
+              checked={f.correct_option === opt}
+              onChange={() => setF('correct_option', opt)}
+              className="accent-rose-400"
+            />
+            <span className={`text-sm font-semibold ${OPTION_TEXT[opt]}`}>{opt}</span>
+          </label>
+        ))}
+      </div>
+      <div className="flex gap-2">
+        <button onClick={onSubmit} disabled={isLoading || !isFormValid(f)} className="btn-primary py-2 px-4 text-sm">
+          {isLoading ? '...' : submitLabel}
+        </button>
+        {onCancel && <button onClick={onCancel} className="btn-secondary py-2 px-4 text-sm">Cancelar</button>}
+      </div>
+    </div>
+  )
+}
+
 export default function QuizQuestionManager({ quizEventId }) {
   const [questions, setQuestions] = useState([])
   const [loading, setLoading] = useState(true)
@@ -32,8 +87,6 @@ export default function QuizQuestionManager({ quizEventId }) {
 
   function setField(key, value) { setForm(f => ({ ...f, [key]: value })) }
   function setEditField(key, value) { setEditForm(f => ({ ...f, [key]: value })) }
-
-  const isFormValid = (f) => f.text.trim() && f.option_a.trim() && f.option_b.trim() && f.option_c.trim() && f.option_d.trim()
 
   async function handleAdd(e) {
     e.preventDefault()
@@ -71,62 +124,9 @@ export default function QuizQuestionManager({ quizEventId }) {
     setEditForm({ text: q.text, option_a: q.option_a, option_b: q.option_b, option_c: q.option_c, option_d: q.option_d, correct_option: q.correct_option })
   }
 
-  function QuestionForm({ f, setF, onSubmit, onCancel, submitLabel, loading: isLoading }) {
-    return (
-      <div className="space-y-3 bg-gray-50 rounded-xl p-4">
-        <input
-          type="text"
-          className="input-field"
-          placeholder="Texto de la pregunta..."
-          value={f.text}
-          onChange={e => setF('text', e.target.value)}
-        />
-        <div className="grid grid-cols-2 gap-2">
-          {OPTIONS.map(opt => {
-            const key = `option_${opt.toLowerCase()}`
-            return (
-              <div key={opt} className={`flex items-center gap-2 border rounded-lg p-2 ${OPTION_COLORS[opt]}`}>
-                <span className={`font-bold text-sm w-5 shrink-0 ${OPTION_TEXT[opt]}`}>{opt}</span>
-                <input
-                  type="text"
-                  className="flex-1 bg-transparent text-sm outline-none placeholder-gray-400"
-                  placeholder={`Opción ${opt}...`}
-                  value={f[key]}
-                  onChange={e => setF(key, e.target.value)}
-                />
-              </div>
-            )
-          })}
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-gray-600 font-medium">Correcta:</span>
-          {OPTIONS.map(opt => (
-            <label key={opt} className="flex items-center gap-1 cursor-pointer">
-              <input
-                type="radio"
-                name={`correct-${quizEventId}-${editingId || 'new'}`}
-                value={opt}
-                checked={f.correct_option === opt}
-                onChange={() => setF('correct_option', opt)}
-                className="accent-rose-400"
-              />
-              <span className={`text-sm font-semibold ${OPTION_TEXT[opt]}`}>{opt}</span>
-            </label>
-          ))}
-        </div>
-        <div className="flex gap-2">
-          <button onClick={onSubmit} disabled={isLoading || !isFormValid(f)} className="btn-primary py-2 px-4 text-sm">
-            {isLoading ? '...' : submitLabel}
-          </button>
-          {onCancel && <button onClick={onCancel} className="btn-secondary py-2 px-4 text-sm">Cancelar</button>}
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-4">
-      <QuestionForm f={form} setF={setField} onSubmit={handleAdd} submitLabel="Agregar pregunta" loading={adding} />
+      <QuestionForm f={form} setF={setField} onSubmit={handleAdd} submitLabel="Agregar pregunta" loading={adding} radioName={`correct-${quizEventId}-new`} />
 
       {loading && <div className="text-center text-gray-400 py-4 text-sm">Cargando...</div>}
 
@@ -145,6 +145,7 @@ export default function QuizQuestionManager({ quizEventId }) {
                 onSubmit={() => handleEdit(q.id)}
                 onCancel={() => setEditingId(null)}
                 submitLabel="Guardar" loading={saving}
+                radioName={`correct-${quizEventId}-${q.id}`}
               />
             ) : (
               <div className="space-y-2">
