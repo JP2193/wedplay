@@ -9,7 +9,7 @@ export default function GuestPage() {
   const [finished, setFinished] = useState(false)
 
   if (finished) {
-    return <ThankYouScreen playerId={player.id} />
+    return <ThankYouScreen />
   }
 
   if (!player) {

@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { supabase } from '../../lib/supabase'
+import { useEffect, useState } from 'react'
 
 const EMOJIS = ['🎊', '⭐', '🌸', '💫', '🎉', '✨', '🌟', '🎈']
 
@@ -26,40 +25,15 @@ function Confetti() {
   )
 }
 
-export default function ThankYouScreen({ playerId }) {
-  const [phase, setPhase] = useState('ask') // 'ask' | 'bingo' | 'done'
-  const [loading, setLoading] = useState(false)
+export default function ThankYouScreen() {
+  const [done, setDone] = useState(false)
 
-  async function handleBingo() {
-    setLoading(true)
-    await supabase
-      .from('players')
-      .update({ bingo_called: true })
-      .eq('id', playerId)
-    setLoading(false)
-    setPhase('bingo')
+  useEffect(() => {
+    const t = setTimeout(() => setDone(true), 3200)
+    return () => clearTimeout(t)
+  }, [])
 
-    setTimeout(() => setPhase('done'), 3000)
-  }
-
-  if (phase === 'bingo') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-rose-400 via-pink-400 to-amber-400 flex items-center justify-center p-6 relative overflow-hidden">
-        <Confetti />
-        <div className="text-center space-y-4 relative z-10">
-          <div className="animate-bingo-pop">
-            <p className="text-8xl font-black text-white tracking-widest drop-shadow-lg">
-              BINGO
-            </p>
-          </div>
-          <div className="animate-float text-6xl">🎊</div>
-          <p className="text-white/80 text-lg font-medium">¡El anfitrión fue notificado!</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (phase === 'done') {
+  if (done) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-amber-50 flex items-center justify-center p-6">
         <div className="text-center space-y-4 max-w-xs">
@@ -71,31 +45,19 @@ export default function ThankYouScreen({ playerId }) {
     )
   }
 
-  // phase === 'ask'
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-amber-50 flex items-center justify-center p-6">
-      <div className="text-center space-y-8 max-w-xs w-full">
-        <div className="space-y-3">
-          <div className="text-5xl">🎉</div>
-          <h1 className="text-2xl font-semibold text-gray-800">¡Tus respuestas fueron guardadas!</h1>
-          <p className="text-gray-500 text-base leading-relaxed">
-            Ahora andá a buscar a esas personas en la fiesta.
+    <div className="min-h-screen relative overflow-hidden flex items-center justify-center"
+      style={{ background: 'linear-gradient(135deg, #f97066 0%, #fb923c 50%, #fbbf24 100%)' }}
+    >
+      <Confetti />
+      <div className="text-center space-y-4 relative z-10">
+        <div className="animate-bingo-pop">
+          <p className="text-8xl font-black text-white tracking-widest drop-shadow-lg select-none">
+            BINGO
           </p>
         </div>
-
-        <div className="bg-white rounded-2xl shadow-sm border border-rose-100 p-6 space-y-4">
-          <p className="text-gray-700 font-medium text-lg">¿Encontraste a todos?</p>
-          <p className="text-gray-400 text-sm">
-            Si completaste tu cartón, ¡cantá Bingo y avisale al anfitrión!
-          </p>
-          <button
-            onClick={handleBingo}
-            disabled={loading}
-            className="w-full py-4 text-xl font-black tracking-widest bg-gradient-to-r from-rose-400 to-amber-400 text-white rounded-2xl shadow-lg active:scale-95 transition-transform disabled:opacity-50"
-          >
-            {loading ? '...' : '🎊 ¡BINGO!'}
-          </button>
-        </div>
+        <div className="animate-float text-6xl">🎊</div>
+        <p className="text-white/80 text-lg font-medium">¡El anfitrión fue notificado!</p>
       </div>
     </div>
   )
