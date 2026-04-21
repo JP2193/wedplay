@@ -135,7 +135,7 @@ export default function JoinScreen({ onJoined }) {
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-amber-50 flex items-center justify-center p-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center space-y-2">
-          <div className="text-5xl">💍</div>
+          <div className="text-5xl">🎯</div>
           <h1 className="text-3xl font-semibold text-gray-800">Bingo Humano</h1>
           <p className="text-gray-400 text-sm">El juego de la boda</p>
         </div>

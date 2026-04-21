@@ -50,7 +50,7 @@ export default function Dashboard({ session }) {
       <header className="bg-white border-b border-gray-100 px-4 py-4">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-xl">💍</span>
+            <span className="text-xl">🎯</span>
             <h1 className="font-semibold text-gray-800">Bingo Humano</h1>
           </div>
           <button onClick={handleLogout} className="btn-ghost text-sm">Salir</button>
