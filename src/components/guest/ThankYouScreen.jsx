@@ -25,7 +25,7 @@ function Confetti() {
   )
 }
 
-export default function ThankYouScreen() {
+export default function ThankYouScreen({ onBack }) {
   const [done, setDone] = useState(false)
 
   useEffect(() => {
@@ -40,12 +40,11 @@ export default function ThankYouScreen() {
           <div className="text-6xl animate-float">🎯</div>
           <h1 className="text-2xl font-semibold text-gray-800">¡Que disfrutes la fiesta!</h1>
           <p className="text-gray-400 text-sm">El anfitrión ya sabe que cantaste Bingo.</p>
-          <button
-            onClick={() => window.location.href = '/guest'}
-            className="btn-secondary text-sm px-6"
-          >
-            Salir
-          </button>
+          {onBack && (
+            <button onClick={onBack} className="btn-secondary text-sm px-6">
+              Volver al lobby
+            </button>
+          )}
         </div>
       </div>
     )

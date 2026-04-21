@@ -24,7 +24,7 @@ export default function EventDetail({ session }) {
       .single()
 
     if (error || !data) {
-      navigate('/bingo/admin')
+      navigate('/admin/bingo')
       return
     }
     setEvent(data)
@@ -45,10 +45,10 @@ export default function EventDetail({ session }) {
       <header className="bg-white border-b border-gray-100 px-4 py-4">
         <div className="max-w-2xl mx-auto space-y-1">
           <button
-            onClick={() => navigate('/bingo/admin')}
+            onClick={() => navigate('/admin')}
             className="text-rose-400 text-sm hover:text-rose-500 flex items-center gap-1"
           >
-            ← Volver
+            ← Panel
           </button>
           <h1 className="font-semibold text-gray-800 text-lg">{event.name}</h1>
           <div className="flex items-center gap-4 text-sm text-gray-400">

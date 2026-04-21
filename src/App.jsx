@@ -1,23 +1,30 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import AdminPage from './pages/AdminPage'
-import GuestPage from './pages/GuestPage'
-import QuizAdminPage from './pages/QuizAdminPage'
-import QuizGuestPage from './pages/QuizGuestPage'
-import AdivinaAdminPage from './pages/AdivinaAdminPage'
-import AdivinaGuestPage from './pages/AdivinaGuestPage'
 import LandingPage from './pages/LandingPage'
+import AdminPage from './pages/AdminPage'
+import GuestLobbyPage from './pages/GuestLobbyPage'
+import BingoRoomGuestPage from './pages/BingoRoomGuestPage'
+import QuizRoomGuestPage from './pages/QuizRoomGuestPage'
+import AdivinaRoomGuestPage from './pages/AdivinaRoomGuestPage'
+import DeseosGuestPage from './pages/DeseosGuestPage'
+import TimelineGuestPage from './pages/TimelineGuestPage'
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/bingo/admin/*" element={<AdminPage />} />
-        <Route path="/bingo" element={<GuestPage />} />
-        <Route path="/quiz/admin/*" element={<QuizAdminPage />} />
-        <Route path="/quiz" element={<QuizGuestPage />} />
-        <Route path="/adivina/admin/*" element={<AdivinaAdminPage />} />
-        <Route path="/adivina" element={<AdivinaGuestPage />} />
+        {/* Landing: code entry for guests, admin login link */}
         <Route path="/" element={<LandingPage />} />
+
+        {/* Admin panel (unified, Google OAuth protected) */}
+        <Route path="/admin/*" element={<AdminPage />} />
+
+        {/* Guest: room lobby + game routes */}
+        <Route path="/:code" element={<GuestLobbyPage />} />
+        <Route path="/:code/bingo" element={<BingoRoomGuestPage />} />
+        <Route path="/:code/quiz" element={<QuizRoomGuestPage />} />
+        <Route path="/:code/adivina" element={<AdivinaRoomGuestPage />} />
+        <Route path="/:code/deseos" element={<DeseosGuestPage />} />
+        <Route path="/:code/timeline" element={<TimelineGuestPage />} />
       </Routes>
     </BrowserRouter>
   )

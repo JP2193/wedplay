@@ -58,7 +58,7 @@ export default function QuizEventAdmin({ session }) {
       supabase.from('quiz_questions').select('*').eq('quiz_event_id', eventId).order('position'),
       supabase.from('quiz_players').select('id, full_name, total_score').eq('quiz_event_id', eventId),
     ])
-    if (evRes.error || !evRes.data) { navigate('/quiz/admin'); return }
+    if (evRes.error || !evRes.data) { navigate('/admin/quiz'); return }
     setQuizEvent(evRes.data)
     if (qRes.data) setQuestions(qRes.data)
     if (pRes.data) setPlayers(pRes.data)
@@ -83,7 +83,7 @@ export default function QuizEventAdmin({ session }) {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-100 px-4 py-4">
         <div className="max-w-2xl mx-auto space-y-1">
-          <button onClick={() => navigate('/quiz/admin')} className="text-rose-400 text-sm hover:text-rose-500 flex items-center gap-1">← Volver</button>
+          <button onClick={() => navigate('/admin')} className="text-rose-400 text-sm hover:text-rose-500 flex items-center gap-1">← Panel</button>
           <h1 className="font-semibold text-gray-800 text-lg">{quizEvent.name}</h1>
           <div className="flex items-center gap-4 text-sm text-gray-400">
             <span>Código: <span className="font-mono font-semibold text-gray-700">{quizEvent.code}</span></span>

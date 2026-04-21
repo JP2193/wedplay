@@ -57,7 +57,7 @@ export default function AdivinaEventAdmin({ session }) {
       supabase.from('adivina_questions').select('*').eq('adivina_event_id', eventId).order('position'),
       supabase.from('adivina_players').select('id, full_name, total_score').eq('adivina_event_id', eventId),
     ])
-    if (evRes.error || !evRes.data) { navigate('/adivina/admin'); return }
+    if (evRes.error || !evRes.data) { navigate('/admin/adivina'); return }
     setAdivinaEvent(evRes.data)
     if (qRes.data) setQuestions(qRes.data)
     if (pRes.data) setPlayers(pRes.data)
@@ -82,7 +82,7 @@ export default function AdivinaEventAdmin({ session }) {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-100 px-4 py-4">
         <div className="max-w-2xl mx-auto space-y-1">
-          <button onClick={() => navigate('/adivina/admin')} className="text-rose-400 text-sm hover:text-rose-500 flex items-center gap-1">← Volver</button>
+          <button onClick={() => navigate('/admin')} className="text-rose-400 text-sm hover:text-rose-500 flex items-center gap-1">← Panel</button>
           <h1 className="font-semibold text-gray-800 text-lg">{adivinaEvent.name}</h1>
           <div className="flex items-center gap-4 text-sm text-gray-400 flex-wrap">
             <span>Código: <span className="font-mono font-semibold text-gray-700">{adivinaEvent.code}</span></span>
