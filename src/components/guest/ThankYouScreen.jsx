@@ -36,10 +36,16 @@ export default function ThankYouScreen() {
   if (done) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-amber-50 flex items-center justify-center p-6">
-        <div className="text-center space-y-4 max-w-xs">
+        <div className="text-center space-y-6 max-w-xs">
           <div className="text-6xl animate-float">💍</div>
           <h1 className="text-2xl font-semibold text-gray-800">¡Que disfrutes la fiesta!</h1>
           <p className="text-gray-400 text-sm">El anfitrión ya sabe que cantaste Bingo.</p>
+          <button
+            onClick={() => window.location.href = '/guest'}
+            className="btn-secondary text-sm px-6"
+          >
+            Salir
+          </button>
         </div>
       </div>
     )
