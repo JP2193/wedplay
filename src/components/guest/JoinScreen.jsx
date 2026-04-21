@@ -14,7 +14,8 @@ export default function JoinScreen({ onJoined }) {
   const [step, setStep] = useState('code') // 'code' | 'name'
   const [code, setCode] = useState('')
   const [eventData, setEventData] = useState(null)
-  const [fullName, setFullName] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
@@ -43,8 +44,8 @@ export default function JoinScreen({ onJoined }) {
 
   async function handleNameSubmit(e) {
     e.preventDefault()
-    const name = fullName.trim()
-    if (!name || !eventData) return
+    const fullName = `${firstName.trim()} ${lastName.trim()}`
+    if (!firstName.trim() || !lastName.trim() || !eventData) return
     setLoading(true)
     setError(null)
 
@@ -53,17 +54,15 @@ export default function JoinScreen({ onJoined }) {
       .from('players')
       .select('*')
       .eq('event_id', eventData.id)
-      .eq('full_name', name)
+      .eq('full_name', fullName)
       .maybeSingle()
 
     if (existingPlayer) {
-      // Recuperar preguntas asignadas
       const { data: questions } = await supabase
         .from('questions')
         .select('*')
         .in('id', existingPlayer.assigned_questions || [])
 
-      // Ordenar según assigned_questions
       const ordered = (existingPlayer.assigned_questions || [])
         .map(id => questions.find(q => q.id === id))
         .filter(Boolean)
@@ -73,7 +72,7 @@ export default function JoinScreen({ onJoined }) {
       return
     }
 
-    // Nuevo jugador: obtener todas las preguntas del evento
+    // Nuevo jugador
     const { data: allQuestions, error: qError } = await supabase
       .from('questions')
       .select('*')
@@ -112,7 +111,7 @@ export default function JoinScreen({ onJoined }) {
       .from('players')
       .insert({
         event_id: eventData.id,
-        full_name: name,
+        full_name: fullName,
         assigned_questions: assignedIds,
         answers: {},
         finished: false,
@@ -130,10 +129,11 @@ export default function JoinScreen({ onJoined }) {
     setLoading(false)
   }
 
+  const canSubmitName = firstName.trim() && lastName.trim()
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-amber-50 flex items-center justify-center p-4">
       <div className="w-full max-w-sm space-y-6">
-        {/* Logo / título */}
         <div className="text-center space-y-2">
           <div className="text-5xl">💍</div>
           <h1 className="text-3xl font-semibold text-gray-800">Bingo Humano</h1>
@@ -179,30 +179,43 @@ export default function JoinScreen({ onJoined }) {
                 </span>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Tu nombre y apellido
-                </label>
-                <input
-                  type="text"
-                  className="input-field"
-                  placeholder="Ej: María García"
-                  value={fullName}
-                  onChange={e => setFullName(e.target.value)}
-                  required
-                  autoFocus
-                  autoComplete="name"
-                />
-                <p className="text-xs text-gray-400 mt-1.5">
-                  Si ya jugaste antes, usá el mismo nombre para retomar tu progreso.
-                </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Nombre</label>
+                  <input
+                    type="text"
+                    className="input-field"
+                    placeholder="María"
+                    value={firstName}
+                    onChange={e => setFirstName(e.target.value)}
+                    required
+                    autoFocus
+                    autoComplete="given-name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Apellido</label>
+                  <input
+                    type="text"
+                    className="input-field"
+                    placeholder="García"
+                    value={lastName}
+                    onChange={e => setLastName(e.target.value)}
+                    required
+                    autoComplete="family-name"
+                  />
+                </div>
               </div>
+
+              <p className="text-xs text-gray-400">
+                Si ya jugaste antes, usá el mismo nombre y apellido para retomar tu progreso.
+              </p>
 
               {error && (
                 <p className="text-red-500 text-sm bg-red-50 rounded-lg p-3 text-center">{error}</p>
               )}
 
-              <button type="submit" disabled={loading || !fullName.trim()} className="btn-primary w-full">
+              <button type="submit" disabled={loading || !canSubmitName} className="btn-primary w-full">
                 {loading ? 'Un momento...' : 'Comenzar a jugar'}
               </button>
 

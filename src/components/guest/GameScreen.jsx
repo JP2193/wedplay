@@ -113,26 +113,33 @@ export default function GameScreen({ player, questions, onFinished }) {
     <>
       <div className="min-h-screen bg-gradient-to-b from-rose-50 to-white flex flex-col">
         {/* Header nav */}
-        <div className="flex items-center justify-between px-4 py-4 bg-white border-b border-gray-100 shadow-sm">
-          <button
-            onClick={() => navigate('prev')}
-            disabled={current === 0 || saving}
-            className="btn-secondary py-2 px-4 text-sm disabled:opacity-30"
-          >
-            ← Anterior
-          </button>
+        <div className="bg-white border-b border-gray-100 shadow-sm">
+          <div className="px-4 pt-3 pb-1 text-center">
+            <span className="text-xs text-gray-400">
+              Jugador: <span className="font-medium text-gray-600">{player.full_name}</span>
+            </span>
+          </div>
+          <div className="flex items-center justify-between px-4 py-3">
+            <button
+              onClick={() => navigate('prev')}
+              disabled={current === 0 || saving}
+              className="btn-secondary py-2 px-4 text-sm disabled:opacity-30"
+            >
+              ← Anterior
+            </button>
 
-          <span className="text-sm font-medium text-gray-500">
-            {current + 1} / {questions.length}
-          </span>
+            <span className="text-sm font-medium text-gray-500">
+              {current + 1} / {questions.length}
+            </span>
 
-          <button
-            onClick={() => navigate('next')}
-            disabled={isLast || saving}
-            className="btn-secondary py-2 px-4 text-sm disabled:opacity-30"
-          >
-            Siguiente →
-          </button>
+            <button
+              onClick={() => navigate('next')}
+              disabled={isLast || saving}
+              className="btn-secondary py-2 px-4 text-sm disabled:opacity-30"
+            >
+              Siguiente →
+            </button>
+          </div>
         </div>
 
         {/* Pregunta + respuesta */}
