@@ -29,6 +29,14 @@ export default function QuizEventAdmin({ session }) {
     return () => supabase.removeChannel(channel)
   }, [eventId])
 
+  // Re-fetch preguntas si al pasar a 'question' el array está vacío
+  // (puede pasar si las preguntas se agregaron después del montaje inicial)
+  useEffect(() => {
+    if (!quizEvent || quizEvent.status !== 'question' || questions.length > 0) return
+    supabase.from('quiz_questions').select('*').eq('quiz_event_id', eventId).order('position')
+      .then(({ data }) => { if (data) setQuestions(data) })
+  }, [quizEvent?.status])
+
   async function fetchAll() {
     const [evRes, qRes, pRes] = await Promise.all([
       supabase.from('quiz_events').select('*').eq('id', eventId).eq('admin_id', session.user.id).single(),
@@ -83,7 +91,7 @@ export default function QuizEventAdmin({ session }) {
       <main className="max-w-2xl mx-auto px-4 py-5">
         {/* SETUP */}
         {quizEvent.status === 'lobby' && tab === 'setup' && (
-          <QuizQuestionManager quizEventId={eventId} />
+          <QuizQuestionManager quizEventId={eventId} onQuestionsChange={setQuestions} />
         )}
 
         {/* LOBBY */}

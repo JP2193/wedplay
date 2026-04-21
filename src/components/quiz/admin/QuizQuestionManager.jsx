@@ -64,7 +64,7 @@ function QuestionForm({ f, setF, onSubmit, onCancel, submitLabel, loading: isLoa
   )
 }
 
-export default function QuizQuestionManager({ quizEventId }) {
+export default function QuizQuestionManager({ quizEventId, onQuestionsChange }) {
   const [questions, setQuestions] = useState([])
   const [loading, setLoading] = useState(true)
   const [form, setForm] = useState(emptyForm())
@@ -81,7 +81,7 @@ export default function QuizQuestionManager({ quizEventId }) {
       .select('*')
       .eq('quiz_event_id', quizEventId)
       .order('position', { ascending: true })
-    if (data) setQuestions(data)
+    if (data) { setQuestions(data); onQuestionsChange?.(data) }
     setLoading(false)
   }
 
@@ -98,7 +98,12 @@ export default function QuizQuestionManager({ quizEventId }) {
       .insert({ quiz_event_id: quizEventId, ...form, text: form.text.trim(), position })
       .select().single()
     if (error) alert('Error al agregar la pregunta.')
-    else { setQuestions(prev => [...prev, data]); setForm(emptyForm()) }
+    else {
+      const updated = [...questions, data]
+      setQuestions(updated)
+      onQuestionsChange?.(updated)
+      setForm(emptyForm())
+    }
     setAdding(false)
   }
 
@@ -116,7 +121,9 @@ export default function QuizQuestionManager({ quizEventId }) {
   async function handleDelete(id) {
     if (!window.confirm('¿Eliminar esta pregunta?')) return
     await supabase.from('quiz_questions').delete().eq('id', id)
-    setQuestions(prev => prev.filter(q => q.id !== id))
+    const updated = questions.filter(q => q.id !== id)
+    setQuestions(updated)
+    onQuestionsChange?.(updated)
   }
 
   function startEdit(q) {
