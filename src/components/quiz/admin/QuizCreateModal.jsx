@@ -10,7 +10,7 @@ function generateCode(length = 6) {
 
 export default function QuizCreateModal({ adminId, onClose, onCreated }) {
   const [name, setName] = useState('')
-  const [timer, setTimer] = useState(15)
+  const [timer, setTimer] = useState(20)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 

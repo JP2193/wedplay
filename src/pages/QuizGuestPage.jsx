@@ -10,6 +10,7 @@ export default function QuizGuestPage() {
   const [player, setPlayer] = useState(null)
   const [quizEvent, setQuizEvent] = useState(null)
   const [questions, setQuestions] = useState([])
+  const [lastResult, setLastResult] = useState(null)
 
   // Suscripción a cambios del evento en tiempo real
   useEffect(() => {
@@ -36,6 +37,11 @@ export default function QuizGuestPage() {
       .order('position')
       .then(({ data }) => { if (data) setQuestions(data) })
   }, [quizEvent?.status])
+
+  // Resetear lastResult al cambiar de pregunta
+  useEffect(() => {
+    setLastResult(null)
+  }, [quizEvent?.current_question_index])
 
   // Actualizar total_score del player cuando cambia el ranking
   useEffect(() => {
@@ -69,11 +75,11 @@ export default function QuizGuestPage() {
     if (!currentQuestion) {
       return <div className="min-h-screen bg-gray-900 flex items-center justify-center text-gray-400 text-sm">Cargando pregunta...</div>
     }
-    return <QuizQuestion quizEvent={quizEvent} question={currentQuestion} player={player} />
+    return <QuizQuestion quizEvent={quizEvent} question={currentQuestion} player={player} onResult={setLastResult} />
   }
 
   if (quizEvent.status === 'ranking') {
-    return <QuizRankingWait player={player} />
+    return <QuizRankingWait player={player} lastResult={lastResult} question={currentQuestion} />
   }
 
   if (quizEvent.status === 'finished') {

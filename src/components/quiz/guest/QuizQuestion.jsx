@@ -9,15 +9,17 @@ const OPTION_STYLES = {
   D: { base: 'bg-emerald-500 hover:bg-emerald-600 text-white', correct: 'bg-emerald-500 text-white', wrong: 'bg-red-400 text-white', neutral: 'bg-emerald-100 text-emerald-400' },
 }
 
-export default function QuizQuestion({ quizEvent, question, player }) {
+export default function QuizQuestion({ quizEvent, question, player, onResult }) {
   const [selected, setSelected] = useState(null)
-  const [result, setResult] = useState(null) // { is_correct, correct_option, base_score, speed_bonus }
+  const [result, setResult] = useState(null)
+  const [revealed, setRevealed] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const answeredRef = useRef(false)
 
   useEffect(() => {
     setSelected(null)
     setResult(null)
+    setRevealed(false)
     answeredRef.current = false
   }, [question.id])
 
@@ -37,16 +39,28 @@ export default function QuizQuestion({ quizEvent, question, player }) {
       p_time_taken_ms: timeTakenMs,
     })
 
-    if (!error && data) setResult(data)
+    if (!error && data) {
+      setResult(data)
+      onResult?.(data)
+    }
     setSubmitting(false)
   }
 
+  function handleExpire() {
+    setRevealed(true)
+  }
+
   function getStyle(opt) {
-    if (!result && !selected) return OPTION_STYLES[opt].base
-    if (!result && selected === opt) return OPTION_STYLES[opt].base + ' opacity-70'
-    if (!result) return OPTION_STYLES[opt].neutral
-    if (opt === result.correct_option) return OPTION_STYLES[opt].correct
-    if (opt === selected && !result.is_correct) return OPTION_STYLES[opt].wrong
+    if (!selected) return OPTION_STYLES[opt].base
+    if (!revealed) {
+      if (selected === opt) return OPTION_STYLES[opt].base + ' opacity-70'
+      return OPTION_STYLES[opt].neutral
+    }
+    // revealed
+    if (result) {
+      if (opt === result.correct_option) return OPTION_STYLES[opt].correct
+      if (opt === selected && !result.is_correct) return OPTION_STYLES[opt].wrong
+    }
     return OPTION_STYLES[opt].neutral
   }
 
@@ -58,7 +72,7 @@ export default function QuizQuestion({ quizEvent, question, player }) {
         <QuizCountdown
           totalSeconds={quizEvent.timer_seconds}
           startedAt={quizEvent.question_started_at}
-          onExpire={() => {}}
+          onExpire={handleExpire}
         />
         <span className="text-gray-400 text-sm">#{quizEvent.current_question_index + 1}</span>
       </div>
@@ -84,8 +98,8 @@ export default function QuizQuestion({ quizEvent, question, player }) {
           ))}
         </div>
 
-        {/* Feedback */}
-        {result && (
+        {/* Feedback — solo visible tras revelar */}
+        {revealed && result && (
           <div className={`rounded-2xl p-4 text-center space-y-1 ${result.is_correct ? 'bg-emerald-500/20' : 'bg-red-500/20'}`}>
             <p className={`text-lg font-bold ${result.is_correct ? 'text-emerald-400' : 'text-red-400'}`}>
               {result.is_correct ? '¡Correcto! 🎉' : 'Incorrecto 😔'}
@@ -96,7 +110,6 @@ export default function QuizQuestion({ quizEvent, question, player }) {
                 <span className="font-bold text-white"> = {result.total_score} pts</span>
               </p>
             )}
-            <p className="text-white/50 text-xs">Esperá la siguiente pregunta...</p>
           </div>
         )}
 
