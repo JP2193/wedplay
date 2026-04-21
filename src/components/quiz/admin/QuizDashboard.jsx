@@ -39,15 +39,8 @@ export default function QuizDashboard({ session }) {
     e.stopPropagation()
     if (!window.confirm('¿Reiniciar el quiz? Se borrarán todas las respuestas y puntajes.')) return
     setResettingId(ev.id)
-    const { data: playerData } = await supabase.from('quiz_players').select('id').eq('quiz_event_id', ev.id)
-    if (playerData?.length > 0) {
-      await supabase.from('quiz_answers').delete().in('quiz_player_id', playerData.map(p => p.id))
-      await supabase.from('quiz_players').update({ total_score: 0 }).eq('quiz_event_id', ev.id)
-    }
-    await supabase.from('quiz_events')
-      .update({ status: 'lobby', current_question_index: 0, question_started_at: null })
-      .eq('id', ev.id)
-    setEvents(prev => prev.map(e => e.id === ev.id ? { ...e, status: 'lobby' } : e))
+    const { error } = await supabase.rpc('reset_quiz_event', { p_quiz_event_id: ev.id })
+    if (!error) setEvents(prev => prev.map(e => e.id === ev.id ? { ...e, status: 'lobby' } : e))
     setResettingId(null)
   }
 
