@@ -36,7 +36,7 @@ export default function AdminPage() {
     <Routes>
       <Route path="/" element={<Dashboard session={session} />} />
       <Route path="/events/:eventId" element={<EventDetail session={session} />} />
-      <Route path="*" element={<Navigate to="/admin" replace />} />
+      <Route path="*" element={<Navigate to="/bingo/admin" replace />} />
     </Routes>
   )
 }

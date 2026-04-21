@@ -80,7 +80,7 @@ export default function Dashboard({ session }) {
         {events.map(event => (
           <div
             key={event.id}
-            onClick={() => navigate(`/admin/events/${event.id}`)}
+            onClick={() => navigate(`/bingo/admin/events/${event.id}`)}
             className="card cursor-pointer hover:border-rose-200 hover:shadow-md transition-all duration-200"
           >
             <div className="flex items-start justify-between gap-3">

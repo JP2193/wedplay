@@ -24,7 +24,7 @@ export default function EventDetail({ session }) {
       .single()
 
     if (error || !data) {
-      navigate('/admin')
+      navigate('/bingo/admin')
       return
     }
     setEvent(data)
@@ -45,7 +45,7 @@ export default function EventDetail({ session }) {
       <header className="bg-white border-b border-gray-100 px-4 py-4">
         <div className="max-w-2xl mx-auto space-y-1">
           <button
-            onClick={() => navigate('/admin')}
+            onClick={() => navigate('/bingo/admin')}
             className="text-rose-400 text-sm hover:text-rose-500 flex items-center gap-1"
           >
             ← Volver
