@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 
-export default function AdminLogin({ redirectPath = '/bingo/admin' }) {
+export default function AdminLogin({ redirectPath = '/bingo/admin', title = 'Bingo Humano' }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
@@ -25,7 +25,7 @@ export default function AdminLogin({ redirectPath = '/bingo/admin' }) {
       <div className="card max-w-sm w-full text-center space-y-6">
         <div className="space-y-2">
           <div className="text-4xl">🎯</div>
-          <h1 className="text-2xl font-semibold text-gray-800">Bingo Humano</h1>
+          <h1 className="text-2xl font-semibold text-gray-800">{title}</h1>
           <p className="text-gray-500 text-sm">Panel de administración</p>
 
         </div>
