@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 
-export default function AdminLogin() {
+export default function AdminLogin({ redirectPath = '/bingo/admin' }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
@@ -11,7 +11,7 @@ export default function AdminLogin() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/bingo/admin`,
+        redirectTo: `${window.location.origin}${redirectPath}`,
       },
     })
     if (error) {

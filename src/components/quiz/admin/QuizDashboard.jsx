@@ -45,7 +45,7 @@ export default function QuizDashboard({ session }) {
             <h1 className="font-semibold text-gray-800">Quiz</h1>
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={() => navigate('/bingo/admin')} className="btn-ghost text-sm">Bingo Humano</button>
+            <button onClick={() => navigate('/')} className="btn-ghost text-sm">← WedPlay</button>
             <button onClick={handleLogout} className="btn-ghost text-sm">Salir</button>
           </div>
         </div>

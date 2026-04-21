@@ -153,6 +153,7 @@ export default function JoinScreen({ onJoined }) {
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-amber-50 flex items-center justify-center p-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center space-y-2">
+          <a href="/" className="inline-block text-gray-400 hover:text-gray-600 text-xs mb-1 transition-colors">← WedPlay</a>
           <div className="text-5xl">🎯</div>
           <h1 className="text-3xl font-semibold text-gray-800">Bingo Humano</h1>
         </div>

@@ -28,7 +28,7 @@ export default function LandingPage() {
         {/* Header */}
         <div className="text-center space-y-2">
           <div className="text-5xl">🎉</div>
-          <h1 className="text-3xl font-bold text-gray-800">Party Games</h1>
+          <h1 className="text-3xl font-bold text-gray-800">WedPlay</h1>
           <p className="text-gray-500 text-sm">Elegí el juego para tu evento</p>
         </div>
 

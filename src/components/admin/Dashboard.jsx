@@ -53,7 +53,10 @@ export default function Dashboard({ session }) {
             <span className="text-xl">🎯</span>
             <h1 className="font-semibold text-gray-800">Bingo Humano</h1>
           </div>
-          <button onClick={handleLogout} className="btn-ghost text-sm">Salir</button>
+          <div className="flex items-center gap-3">
+            <button onClick={() => navigate('/')} className="btn-ghost text-sm">← WedPlay</button>
+            <button onClick={handleLogout} className="btn-ghost text-sm">Salir</button>
+          </div>
         </div>
       </header>
 
