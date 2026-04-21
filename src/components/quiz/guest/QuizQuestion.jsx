@@ -15,8 +15,10 @@ export default function QuizQuestion({ quizEvent, question, player, onResult }) 
   const [revealed, setRevealed] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const answeredRef = useRef(false)
+  const mountTimeRef = useRef(new Date().toISOString())
 
   useEffect(() => {
+    mountTimeRef.current = new Date().toISOString()
     setSelected(null)
     setResult(null)
     setRevealed(false)
@@ -29,7 +31,7 @@ export default function QuizQuestion({ quizEvent, question, player, onResult }) 
     setSelected(opt)
     setSubmitting(true)
 
-    const timeTakenMs = Date.now() - new Date(quizEvent.question_started_at).getTime()
+    const timeTakenMs = Date.now() - new Date(mountTimeRef.current).getTime()
 
     const { data, error } = await supabase.rpc('submit_quiz_answer', {
       p_player_id: player.id,
@@ -71,7 +73,7 @@ export default function QuizQuestion({ quizEvent, question, player, onResult }) 
         <span className="text-gray-400 text-sm">{player.full_name}</span>
         <QuizCountdown
           totalSeconds={quizEvent.timer_seconds}
-          startedAt={quizEvent.question_started_at}
+          startedAt={mountTimeRef.current}
           onExpire={handleExpire}
         />
         <span className="text-gray-400 text-sm">#{quizEvent.current_question_index + 1}</span>
