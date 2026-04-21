@@ -48,6 +48,7 @@ export default function QuizEventAdmin({ session }) {
     if (!window.confirm('¿Reiniciar el quiz? Se borrarán todas las respuestas y puntajes de los jugadores.')) return
     const { error } = await supabase.rpc('reset_quiz_event', { p_quiz_event_id: eventId })
     if (error) { alert('Error al reiniciar: ' + error.message); return }
+    setTab('lobby')
     await fetchAll()
   }
 
