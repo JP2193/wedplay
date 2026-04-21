@@ -136,7 +136,9 @@ export default function JoinScreen({ onJoined }) {
       .single()
 
     if (insertError) {
-      setError('Error al registrarte. Intentá de nuevo.')
+      setError(insertError.message?.includes('Límite')
+        ? 'Este evento alcanzó el límite de participantes.'
+        : 'Error al registrarte. Intentá de nuevo.')
       setLoading(false)
       return
     }

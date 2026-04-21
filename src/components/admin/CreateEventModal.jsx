@@ -86,7 +86,7 @@ export default function CreateEventModal({ adminId, onClose, onCreated }) {
       .single()
 
     if (error) {
-      setError(error.message)
+      setError(error.message?.includes('Límite') ? error.message : 'Error al crear el evento. Intentá de nuevo.')
     } else {
       onCreated(data)
     }

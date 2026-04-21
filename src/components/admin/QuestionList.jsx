@@ -108,7 +108,9 @@ export default function QuestionList({ event }) {
       .select()
       .single()
 
-    if (!error) {
+    if (error) {
+      alert(error.message?.includes('Límite') ? error.message : 'Error al agregar la pregunta.')
+    } else {
       setQuestions(prev => [...prev, data])
       setNewText('')
     }
@@ -221,7 +223,7 @@ export default function QuestionList({ event }) {
         .select()
 
       if (error) {
-        setCsvError(`Error al importar: ${error.message}`)
+        setCsvError(error.message?.includes('Límite') ? error.message : `Error al importar: ${error.message}`)
       } else {
         setQuestions(prev => [...prev, ...data])
         setCsvSuccess(`${data.length} pregunta(s) importada(s) correctamente.`)
