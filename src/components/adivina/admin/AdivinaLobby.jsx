@@ -17,12 +17,11 @@ export default function AdivinaLobby({ adivinaEvent, onStart }) {
   }, [adivinaEvent.id])
 
   async function fetchPlayers() {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('adivina_players')
-      .select('id, full_name, created_at')
+      .select('id, full_name, joined_at')
       .eq('adivina_event_id', adivinaEvent.id)
-      .order('created_at', { ascending: true })
-    console.log('fetchPlayers', { data, error, eventId: adivinaEvent.id })
+      .order('joined_at', { ascending: true })
     if (data) setPlayers(data)
   }
 
