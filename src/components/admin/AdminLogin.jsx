@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 
-export default function AdminLogin({ redirectPath = '/bingo/admin', title = 'Bingo Humano', emoji = '🎯' }) {
+export default function AdminLogin({ redirectPath = '/admin' }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
@@ -21,22 +21,45 @@ export default function AdminLogin({ redirectPath = '/bingo/admin', title = 'Bin
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-gold-50 flex items-center justify-center p-4">
-      <div className="card max-w-sm w-full text-center space-y-6">
-        <div className="space-y-2">
-          <a href="/" className="inline-block text-gray-400 hover:text-gray-600 text-xs transition-colors">← WedPlay</a>
-          <div className="text-4xl">{emoji}</div>
-          <h1 className="text-2xl font-semibold text-gray-800">{title}</h1>
-          <p className="text-gray-500 text-sm">Panel de administración</p>
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-amber-50 to-violet-100 flex flex-col items-center justify-center p-4">
+      {/* Back link */}
+      <div className="w-full max-w-sm mb-4">
+        <a href="/" className="flex items-center gap-1.5 text-gray-400 hover:text-gray-600 text-sm transition-colors">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Volver
+        </a>
+      </div>
 
+      <div className="bg-white rounded-3xl shadow-lg border border-gray-100 max-w-sm w-full p-8 text-center space-y-7">
+        {/* Logo */}
+        <div className="flex flex-col items-center gap-4">
+          <img
+            src="/img/wedplay.png"
+            alt="WedPlay"
+            className="w-20 h-20 object-contain drop-shadow-sm select-none"
+            draggable={false}
+          />
+          <div>
+            <h1 className="text-2xl font-black bg-gradient-to-r from-rose-500 to-amber-400 bg-clip-text text-transparent">
+              WedPlay
+            </h1>
+            <p className="text-gray-400 text-sm mt-0.5">Panel de administración</p>
+          </div>
         </div>
 
-        <div className="border-t border-gray-100 pt-6">
-          <p className="text-gray-600 text-sm mb-4">Inicia sesión para gestionar tus eventos</p>
+        {/* Login */}
+        <div className="space-y-4">
+          <p className="text-gray-500 text-sm">
+            Iniciá sesión con tu cuenta de Google para gestionar tu evento
+          </p>
+
           <button
+            type="button"
             onClick={handleGoogleLogin}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-50 text-gray-700 font-medium py-3 px-6 rounded-xl border border-gray-200 shadow-sm transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-50 text-gray-700 font-medium py-3.5 px-6 rounded-2xl border border-gray-200 shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -46,11 +69,13 @@ export default function AdminLogin({ redirectPath = '/bingo/admin', title = 'Bin
             </svg>
             {loading ? 'Redirigiendo...' : 'Continuar con Google'}
           </button>
+
+          {error && (
+            <p className="text-red-500 text-sm bg-red-50 rounded-xl p-3">{error}</p>
+          )}
         </div>
 
-        {error && (
-          <p className="text-red-500 text-sm bg-red-50 rounded-lg p-3">{error}</p>
-        )}
+        <p className="text-xs text-gray-300">Sesión segura · los invitados no ven esto</p>
       </div>
     </div>
   )

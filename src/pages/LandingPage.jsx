@@ -36,18 +36,22 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-amber-50 to-violet-100 flex flex-col">
-      {/* Admin button top-left */}
-      <div className="p-4">
+      {/* Admin button — top right, más visible */}
+      <div className="flex justify-end p-4">
         <button
+          type="button"
           onClick={() => navigate('/admin')}
-          className="text-xs font-medium text-gray-500 hover:text-gray-700 bg-white/70 hover:bg-white border border-gray-200 rounded-lg px-3 py-2 transition-all duration-200"
+          className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-600 hover:text-gray-800 font-medium text-sm border border-gray-200 shadow-sm rounded-xl px-4 py-2.5 transition-all duration-200 cursor-pointer"
         >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
           Admin
         </button>
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col items-center justify-center p-6 -mt-8">
+      <div className="flex-1 flex flex-col items-center justify-center p-6 -mt-10">
         {/* Logo & title */}
         <div className="flex flex-col items-center text-center mb-10">
           <img
@@ -92,7 +96,7 @@ export default function LandingPage() {
               <button
                 type="submit"
                 disabled={loading || code.length < 4}
-                className="w-full bg-rose-500 hover:bg-rose-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold py-3.5 rounded-2xl transition-colors duration-200 text-base"
+                className="w-full bg-rose-500 hover:bg-rose-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold py-3.5 rounded-2xl transition-colors duration-200 text-base cursor-pointer"
               >
                 {loading ? 'Verificando...' : 'Entrar a la fiesta →'}
               </button>
