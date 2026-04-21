@@ -17,6 +17,14 @@ const GAMES = [
     adminPath: '/quiz/admin',
     accent: 'amber',
   },
+  {
+    emoji: '💍',
+    name: 'Adivina Quién',
+    description: '¿Quién maneja mejor? ¿Quién cocina más? Elegí entre los dos y sumate al ranking.',
+    guestPath: '/adivina',
+    adminPath: '/adivina/admin',
+    accent: 'blue',
+  },
 ]
 
 export default function LandingPage() {
@@ -33,7 +41,7 @@ export default function LandingPage() {
         </div>
 
         {/* Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {GAMES.map(game => (
             <div key={game.name} className="card flex flex-col gap-4">
               <div className="space-y-2">

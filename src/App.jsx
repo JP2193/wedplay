@@ -3,6 +3,8 @@ import AdminPage from './pages/AdminPage'
 import GuestPage from './pages/GuestPage'
 import QuizAdminPage from './pages/QuizAdminPage'
 import QuizGuestPage from './pages/QuizGuestPage'
+import AdivinaAdminPage from './pages/AdivinaAdminPage'
+import AdivinaGuestPage from './pages/AdivinaGuestPage'
 import LandingPage from './pages/LandingPage'
 
 export default function App() {
@@ -13,6 +15,8 @@ export default function App() {
         <Route path="/bingo" element={<GuestPage />} />
         <Route path="/quiz/admin/*" element={<QuizAdminPage />} />
         <Route path="/quiz" element={<QuizGuestPage />} />
+        <Route path="/adivina/admin/*" element={<AdivinaAdminPage />} />
+        <Route path="/adivina" element={<AdivinaGuestPage />} />
         <Route path="/" element={<LandingPage />} />
       </Routes>
     </BrowserRouter>
