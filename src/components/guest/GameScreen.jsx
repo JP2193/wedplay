@@ -19,6 +19,31 @@ function saveLocalAnswers(playerId, answers) {
   } catch {}
 }
 
+function UnansweredModal({ count, onReview, onContinue }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onReview} />
+      <div className="relative bg-white rounded-3xl shadow-2xl p-8 w-full max-w-xs text-center space-y-5">
+        <div className="text-4xl">⚠️</div>
+        <div className="space-y-2">
+          <h2 className="text-xl font-bold text-gray-800">
+            {count === 1 ? 'Hay 1 pregunta sin responder' : `Hay ${count} preguntas sin responder`}
+          </h2>
+          <p className="text-gray-400 text-sm leading-relaxed">
+            ¿Querés volver a revisarlas o terminar igual?
+          </p>
+        </div>
+        <button onClick={onReview} className="btn-primary w-full">
+          Revisar preguntas
+        </button>
+        <button onClick={onContinue} className="text-gray-400 hover:text-gray-600 text-sm transition-colors">
+          Terminar igual
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function BingoModal({ onBingo, onBack, loading }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
@@ -58,7 +83,7 @@ export default function GameScreen({ player, questions, onFinished }) {
   const [current, setCurrent] = useState(0)
   const [answers, setAnswers] = useState(() => loadLocalAnswers(player.id, player.answers || {}))
   const [saving, setSaving] = useState(false)
-  const [showModal, setShowModal] = useState(false)
+  const [showModal, setShowModal] = useState(false) // 'bingo' | 'unanswered' | null
   const [finishing, setFinishing] = useState(false)
   const inputRef = useRef(null)
 
@@ -92,9 +117,9 @@ export default function GameScreen({ player, questions, onFinished }) {
   }
 
   async function handleTerminar() {
-    // Guardar respuestas y abrir modal
     await persistAnswers(answers)
-    setShowModal(true)
+    const unanswered = questions.filter(q => !answers[q.id]?.trim()).length
+    setShowModal(unanswered > 0 ? 'unanswered' : 'bingo')
   }
 
   async function handleBingo() {
@@ -195,10 +220,18 @@ export default function GameScreen({ player, questions, onFinished }) {
         </div>
       </div>
 
-      {showModal && (
+      {showModal === 'unanswered' && (
+        <UnansweredModal
+          count={questions.filter(q => !answers[q.id]?.trim()).length}
+          onReview={() => setShowModal(null)}
+          onContinue={() => setShowModal('bingo')}
+        />
+      )}
+
+      {showModal === 'bingo' && (
         <BingoModal
           onBingo={handleBingo}
-          onBack={() => setShowModal(false)}
+          onBack={() => setShowModal(null)}
           loading={finishing}
         />
       )}
