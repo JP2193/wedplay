@@ -6,7 +6,7 @@ export default function QuizCountdown({ totalSeconds, startedAt, onExpire }) {
   useEffect(() => {
     function tick() {
       const elapsed = (Date.now() - new Date(startedAt).getTime()) / 1000
-      const left = Math.max(0, totalSeconds - elapsed)
+      const left = Math.min(totalSeconds, Math.max(0, totalSeconds - elapsed))
       setRemaining(left)
       if (left <= 0) onExpire?.()
     }
