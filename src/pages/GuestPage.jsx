@@ -4,13 +4,16 @@ import GameScreen from '../components/guest/GameScreen'
 import ThankYouScreen from '../components/guest/ThankYouScreen'
 
 export default function GuestPage() {
-  // player: { id, full_name, event_id, assigned_questions, answers, finished }
   const [player, setPlayer] = useState(null)
-  const [questions, setQuestions] = useState([]) // objetos completos de questions
+  const [questions, setQuestions] = useState([])
   const [finished, setFinished] = useState(false)
 
   if (finished) {
-    return <ThankYouScreen />
+    return (
+      <ThankYouScreen
+        onModify={() => setFinished(false)}
+      />
+    )
   }
 
   if (!player) {
@@ -29,6 +32,7 @@ export default function GuestPage() {
     <GameScreen
       player={player}
       questions={questions}
+      alreadyFinished={player.finished}
       onFinished={() => setFinished(true)}
     />
   )

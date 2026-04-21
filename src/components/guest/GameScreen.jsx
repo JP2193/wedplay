@@ -20,7 +20,7 @@ function saveLocalAnswers(playerId, answers) {
   } catch {}
 }
 
-export default function GameScreen({ player, questions, onFinished }) {
+export default function GameScreen({ player, questions, alreadyFinished, onFinished }) {
   const [current, setCurrent] = useState(0)
   const [answers, setAnswers] = useState(() => loadLocalAnswers(player.id, player.answers || {}))
   const [saving, setSaving] = useState(false)
@@ -130,19 +130,30 @@ export default function GameScreen({ player, questions, onFinished }) {
             )}
           </div>
 
-          {/* Botón terminar (sólo en la última) */}
+          {/* Botón terminar / volver al resumen (sólo en la última) */}
           {isLast && (
             <div className="pt-2">
-              <button
-                onClick={handleFinish}
-                disabled={finishing}
-                className="btn-primary w-full text-base py-4"
-              >
-                {finishing ? 'Guardando...' : '🎉 Terminar'}
-              </button>
-              <p className="text-xs text-gray-400 text-center mt-2">
-                Podrás revisar tus respuestas antes de confirmar.
-              </p>
+              {alreadyFinished ? (
+                <button
+                  onClick={() => { persistAnswers(answers); onFinished() }}
+                  className="btn-secondary w-full text-base py-4"
+                >
+                  ← Volver al resumen
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={handleFinish}
+                    disabled={finishing}
+                    className="btn-primary w-full text-base py-4"
+                  >
+                    {finishing ? 'Guardando...' : '🎉 Terminar'}
+                  </button>
+                  <p className="text-xs text-gray-400 text-center mt-2">
+                    Una vez que terminés podés volver a modificar tus respuestas.
+                  </p>
+                </>
+              )}
             </div>
           )}
         </div>
