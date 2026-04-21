@@ -37,7 +37,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-amber-50 to-violet-100 flex flex-col">
       {/* Admin button — top right, más visible */}
-      <div className="flex justify-end p-4">
+      <div className="flex justify-end p-4 relative z-10">
         <button
           type="button"
           onClick={() => navigate('/admin')}
