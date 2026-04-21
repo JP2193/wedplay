@@ -35,9 +35,9 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-amber-50 to-violet-100 flex flex-col">
-      {/* Admin button — top right, más visible */}
-      <div className="flex justify-end p-4 relative z-10">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-amber-50 to-violet-100 flex flex-col overflow-hidden">
+      {/* Admin button — absolute top right, no afecta el layout */}
+      <div className="absolute top-4 right-4 z-10">
         <button
           type="button"
           onClick={() => navigate('/admin')}
@@ -51,19 +51,19 @@ export default function LandingPage() {
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col items-center justify-center p-6 -mt-10">
+      <div className="flex-1 flex flex-col items-center justify-center p-6">
         {/* Logo & title */}
-        <div className="flex flex-col items-center text-center mb-10">
+        <div className="flex flex-col items-center text-center mb-6 sm:mb-10">
           <img
             src="/img/wedplay.png"
             alt="WedPlay"
-            className="w-40 sm:w-52 drop-shadow-md mb-5 select-none"
+            className="w-28 sm:w-44 drop-shadow-md mb-4 sm:mb-5 select-none"
             draggable={false}
           />
-          <h1 className="text-5xl sm:text-6xl font-black tracking-tight bg-gradient-to-r from-rose-500 via-pink-500 to-amber-400 bg-clip-text text-transparent leading-none mb-2">
+          <h1 className="text-4xl sm:text-6xl font-black tracking-tight bg-gradient-to-r from-rose-500 via-pink-500 to-amber-400 bg-clip-text text-transparent leading-none mb-1.5">
             WedPlay
           </h1>
-          <p className="text-gray-400 text-base font-medium">
+          <p className="text-gray-400 text-sm sm:text-base font-medium">
             Juegos para tu boda
           </p>
         </div>
