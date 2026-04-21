@@ -22,7 +22,7 @@ export default function QuizAdminPage() {
     )
   }
 
-  if (!session) return <AdminLogin redirectPath="/quiz/admin" title="Quiz" />
+  if (!session) return <AdminLogin redirectPath="/quiz/admin" title="Quiz" emoji="❓" />
 
   return (
     <Routes>
