@@ -137,7 +137,6 @@ export default function JoinScreen({ onJoined }) {
         <div className="text-center space-y-2">
           <div className="text-5xl">🎯</div>
           <h1 className="text-3xl font-semibold text-gray-800">Bingo Humano</h1>
-          <p className="text-gray-400 text-sm">El juego de la boda</p>
         </div>
 
         <div className="card shadow-md">
@@ -159,7 +158,7 @@ export default function JoinScreen({ onJoined }) {
                   autoComplete="off"
                 />
                 <p className="text-xs text-gray-400 mt-1.5 text-center">
-                  El código lo encontrás en tu invitación
+                  El anfitrión te compartirá el código
                 </p>
               </div>
 
