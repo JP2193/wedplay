@@ -8,8 +8,10 @@ export default function QuizLiveQuestion({ quizEvent, question, totalPlayers, on
   const [answers, setAnswers] = useState([])
   const [expired, setExpired] = useState(false)
   const expiredRef = useRef(false)
+  const mountTimeRef = useRef(new Date().toISOString())
 
   useEffect(() => {
+    mountTimeRef.current = new Date().toISOString()
     setAnswers([])
     setExpired(false)
     expiredRef.current = false
@@ -54,7 +56,7 @@ export default function QuizLiveQuestion({ quizEvent, question, totalPlayers, on
           </span>
           <QuizCountdown
             totalSeconds={quizEvent.timer_seconds}
-            startedAt={quizEvent.question_started_at}
+            startedAt={mountTimeRef.current}
             onExpire={handleExpire}
           />
         </div>

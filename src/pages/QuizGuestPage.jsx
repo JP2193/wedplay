@@ -43,6 +43,13 @@ export default function QuizGuestPage() {
     setLastResult(null)
   }, [quizEvent?.current_question_index])
 
+  // Si el quiz vuelve a lobby y el jugador fue eliminado (reset), volver al join screen
+  useEffect(() => {
+    if (!player || !quizEvent || quizEvent.status !== 'lobby') return
+    supabase.from('quiz_players').select('id').eq('id', player.id).maybeSingle()
+      .then(({ data }) => { if (!data) setPlayer(null) })
+  }, [quizEvent?.status])
+
   // Actualizar total_score del player cuando cambia el ranking
   useEffect(() => {
     if (!player || !quizEvent || quizEvent.status !== 'ranking') return
