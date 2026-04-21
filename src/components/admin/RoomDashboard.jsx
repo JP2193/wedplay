@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAdmin } from '../../pages/AdminPage'
 import { updateRoomInfo, updateModule } from '../../lib/rooms'
@@ -170,8 +170,8 @@ export default function RoomDashboard() {
     return map
   })
 
-  // First-time setup: show event info modal if name is empty
-  const isFirstTime = !room?.event_name
+  // First-time setup: show event info modal if name is empty or blank
+  const isFirstTime = !room?.event_name?.trim()
 
   useEffect(() => {
     if (!room) return
@@ -318,13 +318,12 @@ export default function RoomDashboard() {
                     </div>
 
                     {mod.implemented && isVisible && (
-                      <button
-                        type="button"
-                        onClick={() => navigate(mod.adminPath)}
-                        className="flex-shrink-0 text-xs font-medium text-rose-500 hover:text-rose-600 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+                      <Link
+                        to={mod.adminPath}
+                        className="flex-shrink-0 text-xs font-medium text-rose-500 hover:text-rose-600 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-lg transition-colors no-underline"
                       >
                         Configurar →
-                      </button>
+                      </Link>
                     )}
                   </div>
                 </div>
