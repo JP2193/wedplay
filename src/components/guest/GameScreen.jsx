@@ -115,8 +115,8 @@ export default function GameScreen({ player, questions, onFinished }) {
         {/* Header nav */}
         <div className="bg-white border-b border-gray-100 shadow-sm">
           <div className="px-4 pt-3 pb-1 text-center">
-            <span className="text-xs text-gray-400">
-              Jugador: <span className="font-medium text-gray-600">{player.full_name}</span>
+            <span className="text-sm text-gray-400">
+              Jugador: <span className="font-semibold text-gray-700">{player.full_name}</span>
             </span>
           </div>
           <div className="flex items-center justify-between px-4 py-3">
