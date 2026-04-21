@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import AdminLogin from '../components/admin/AdminLogin'
@@ -19,6 +19,8 @@ export function useAdmin() { return useContext(AdminContext) }
 export default function AdminPage() {
   const [session, setSession] = useState(undefined) // undefined = loading
   const [room, setRoom] = useState(undefined)
+  const loadingRoomRef = useRef(false)
+  const lastUserIdRef = useRef(null)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session))
@@ -28,11 +30,19 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (session === undefined) return
-    if (!session) { setRoom(null); return }
-    getOrCreateRoom(session.user.id).then(setRoom).catch(err => {
-      console.error('Error loading room:', err)
-      setRoom(null)
-    })
+    if (!session) { setRoom(null); lastUserIdRef.current = null; return }
+
+    // Skip if already loading or same user (avoid duplicate calls from multiple auth events)
+    if (loadingRoomRef.current) return
+    if (lastUserIdRef.current === session.user.id && room !== undefined) return
+
+    loadingRoomRef.current = true
+    lastUserIdRef.current = session.user.id
+
+    getOrCreateRoom(session.user.id)
+      .then(setRoom)
+      .catch(err => { console.error('Error loading room:', err); setRoom(null) })
+      .finally(() => { loadingRoomRef.current = false })
   }, [session])
 
   async function refreshRoom() {
