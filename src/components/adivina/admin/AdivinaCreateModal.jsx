@@ -97,8 +97,8 @@ export default function AdivinaCreateModal({ adminId, onClose, onCreated }) {
       } else {
         onCreated(data)
       }
-    } catch {
-      setError('Error al subir las fotos. Verificá tu conexión.')
+    } catch (err) {
+      setError('Error al subir las fotos: ' + (err?.message ?? JSON.stringify(err)))
     }
     setLoading(false)
   }
