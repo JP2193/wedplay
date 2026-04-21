@@ -318,12 +318,12 @@ export default function RoomDashboard() {
                     </div>
 
                     {mod.implemented && isVisible && (
-                      <Link
-                        to={mod.adminPath}
+                      <a
+                        href={mod.adminPath}
                         className="flex-shrink-0 text-xs font-medium text-rose-500 hover:text-rose-600 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-lg transition-colors no-underline"
                       >
                         Configurar →
-                      </Link>
+                      </a>
                     )}
                   </div>
                 </div>
