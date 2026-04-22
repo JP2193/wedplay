@@ -34,7 +34,7 @@ export default function QuizRoomGuestPage() {
 
   async function initGame() {
     const guestName = getGuestName(code)
-    if (!guestName) { navigate(`/${code}`, { replace: true }); return }
+    if (!guestName) { navigate(`/${code}?redirect=quiz`, { replace: true }); return }
 
     const room = await getRoomByCode(code)
     if (!room) { navigate('/', { replace: true }); return }

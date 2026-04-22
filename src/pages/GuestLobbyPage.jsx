@@ -120,6 +120,9 @@ export default function GuestLobbyPage() {
   function handleNameConfirm(name) {
     setGuestNameState(name)
     setShowNameModal(false)
+    const params = new URLSearchParams(window.location.search)
+    const redirect = params.get('redirect')
+    if (redirect) navigate(`/${code}/${redirect}`, { replace: true })
   }
 
   function handleModuleClick(mod) {
