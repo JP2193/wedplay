@@ -72,6 +72,7 @@ export default function QuizQuestionManager({ quizEventId, onQuestionsChange }) 
   const [editingId, setEditingId] = useState(null)
   const [editForm, setEditForm] = useState(emptyForm())
   const [saving, setSaving] = useState(false)
+  const [showQuestions, setShowQuestions] = useState(false)
 
   useEffect(() => { fetchQuestions() }, [quizEventId])
 
@@ -143,46 +144,62 @@ export default function QuizQuestionManager({ quizEventId, onQuestionsChange }) 
         </div>
       )}
 
-      <div className="space-y-2">
-        {questions.map((q, idx) => (
-          <div key={q.id} className="card">
-            {editingId === q.id ? (
-              <QuestionForm
-                f={editForm} setF={setEditField}
-                onSubmit={() => handleEdit(q.id)}
-                onCancel={() => setEditingId(null)}
-                submitLabel="Guardar" loading={saving}
-                radioName={`correct-${quizEventId}-${q.id}`}
-              />
-            ) : (
-              <div className="space-y-2">
-                <div className="flex items-start gap-3">
-                  <span className="text-xs text-gray-300 font-mono mt-0.5 w-5 shrink-0">{idx + 1}</span>
-                  <p className="flex-1 text-gray-800 font-medium text-sm">{q.text}</p>
-                  <div className="flex gap-2 shrink-0">
-                    <button onClick={() => startEdit(q)} className="text-gray-300 hover:text-blue-400 text-xs">✏️</button>
-                    <button onClick={() => handleDelete(q.id)} className="text-gray-300 hover:text-red-400 text-xs">🗑️</button>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-1.5 ml-8">
-                  {OPTIONS.map(opt => {
-                    const val = q[`option_${opt.toLowerCase()}`]
-                    const isCorrect = q.correct_option === opt
-                    return (
-                      <div key={opt} className={`flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs border ${isCorrect ? 'bg-emerald-50 border-emerald-200' : 'bg-gray-50 border-gray-100'}`}>
-                        <span className={`font-bold w-4 shrink-0 ${isCorrect ? 'text-emerald-600' : OPTION_TEXT[opt]}`}>{opt}</span>
-                        <span className={isCorrect ? 'text-emerald-700 font-medium' : 'text-gray-600'}>{val}</span>
-                        {isCorrect && <span className="ml-auto text-emerald-500">✓</span>}
+      {!loading && questions.length > 0 && (
+        <div className="space-y-2">
+          <button
+            type="button"
+            onClick={() => setShowQuestions(v => !v)}
+            className="w-full flex items-center justify-between px-4 py-3 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors text-sm font-medium text-gray-600"
+          >
+            <span>{showQuestions ? 'Ocultar preguntas' : `Ver preguntas (${questions.length})`}</span>
+            <svg className={`w-4 h-4 transition-transform ${showQuestions ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {showQuestions && (
+            <div className="space-y-2">
+              {questions.map((q, idx) => (
+                <div key={q.id} className="card">
+                  {editingId === q.id ? (
+                    <QuestionForm
+                      f={editForm} setF={setEditField}
+                      onSubmit={() => handleEdit(q.id)}
+                      onCancel={() => setEditingId(null)}
+                      submitLabel="Guardar" loading={saving}
+                      radioName={`correct-${quizEventId}-${q.id}`}
+                    />
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex items-start gap-3">
+                        <span className="text-xs text-gray-300 font-mono mt-0.5 w-5 shrink-0">{idx + 1}</span>
+                        <p className="flex-1 text-gray-800 font-medium text-sm">{q.text}</p>
+                        <div className="flex gap-2 shrink-0">
+                          <button onClick={() => startEdit(q)} className="text-gray-300 hover:text-blue-400 text-xs">✏️</button>
+                          <button onClick={() => handleDelete(q.id)} className="text-gray-300 hover:text-red-400 text-xs">🗑️</button>
+                        </div>
                       </div>
-                    )
-                  })}
+                      <div className="grid grid-cols-2 gap-1.5 ml-8">
+                        {OPTIONS.map(opt => {
+                          const val = q[`option_${opt.toLowerCase()}`]
+                          const isCorrect = q.correct_option === opt
+                          return (
+                            <div key={opt} className={`flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs border ${isCorrect ? 'bg-emerald-50 border-emerald-200' : 'bg-gray-50 border-gray-100'}`}>
+                              <span className={`font-bold w-4 shrink-0 ${isCorrect ? 'text-emerald-600' : OPTION_TEXT[opt]}`}>{opt}</span>
+                              <span className={isCorrect ? 'text-emerald-700 font-medium' : 'text-gray-600'}>{val}</span>
+                              {isCorrect && <span className="ml-auto text-emerald-500">✓</span>}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-      {questions.length > 0 && <p className="text-xs text-gray-400 text-right">{questions.length} preguntas</p>}
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

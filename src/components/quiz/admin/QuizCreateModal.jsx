@@ -8,15 +8,13 @@ function generateCode(length = 6) {
   return code
 }
 
-export default function QuizCreateModal({ adminId, onClose, onCreated }) {
-  const [name, setName] = useState('')
+export default function QuizCreateModal({ adminId, eventName = 'Quiz', onClose, onCreated }) {
   const [timer, setTimer] = useState(20)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
   async function handleSubmit(e) {
     e.preventDefault()
-    if (!name.trim()) return
     setLoading(true)
     setError(null)
 
@@ -29,12 +27,12 @@ export default function QuizCreateModal({ adminId, onClose, onCreated }) {
 
     const { data, error } = await supabase
       .from('quiz_events')
-      .insert({ admin_id: adminId, name: name.trim(), code, timer_seconds: timer })
+      .insert({ admin_id: adminId, name: eventName || 'Quiz', code, timer_seconds: timer })
       .select()
       .single()
 
     if (error) {
-      setError('Error al crear el evento.')
+      setError('Error al crear el quiz.')
     } else {
       onCreated(data)
     }
@@ -51,17 +49,6 @@ export default function QuizCreateModal({ adminId, onClose, onCreated }) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del quiz</label>
-            <input
-              type="text"
-              className="input-field"
-              placeholder="Ej: ¿Quién conoce más a los novios?"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              required autoFocus
-            />
-          </div>
-          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Segundos por pregunta</label>
             <input
               type="number"
@@ -69,7 +56,7 @@ export default function QuizCreateModal({ adminId, onClose, onCreated }) {
               min={5} max={60}
               value={timer}
               onChange={e => setTimer(Number(e.target.value))}
-              required
+              required autoFocus
             />
           </div>
 
@@ -77,7 +64,7 @@ export default function QuizCreateModal({ adminId, onClose, onCreated }) {
 
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={onClose} className="btn-secondary flex-1">Cancelar</button>
-            <button type="submit" disabled={loading || !name.trim()} className="btn-primary flex-1">
+            <button type="submit" disabled={loading} className="btn-primary flex-1">
               {loading ? 'Creando...' : 'Crear quiz'}
             </button>
           </div>

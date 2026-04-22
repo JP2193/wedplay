@@ -43,7 +43,7 @@ export default function QuizAdminSection() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-sm text-center space-y-6">
-        <div className="text-5xl">❓</div>
+        <img src="/img/quiz.png" alt="Quiz" className="w-20 h-20 object-contain mx-auto" />
         <div>
           <h1 className="text-2xl font-bold text-gray-800 mb-2">Quiz</h1>
           <p className="text-gray-500 text-sm">Todavía no configuraste el Quiz para este evento.</p>
@@ -62,6 +62,7 @@ export default function QuizAdminSection() {
       {showCreate && (
         <QuizCreateModal
           adminId={session.user.id}
+          eventName={room?.event_name}
           onClose={() => setShowCreate(false)}
           onCreated={handleCreated}
         />
