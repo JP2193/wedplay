@@ -43,7 +43,6 @@ export default function QuizQuestion({ quizEvent, question, player, onResult, to
 
     if (!error && data) {
       setResult(data)
-      setRevealed(true)
       onResult?.(data)
     }
     setSubmitting(false)
@@ -58,21 +57,19 @@ export default function QuizQuestion({ quizEvent, question, player, onResult, to
     if (!selected) {
       return 'bg-white border border-gray-200 text-gray-800 active:scale-[0.98]'
     }
-    // Seleccionada, esperando resultado
-    if (!revealed) {
-      if (selected === opt) return 'bg-white border-2 border-indigo-400 text-gray-800 opacity-80'
-      return 'bg-gray-50 border border-gray-100 text-gray-300'
-    }
-    // Revelado
-    if (result) {
+    // Revelado (timer expiró)
+    if (revealed && result) {
       if (opt === result.correct_option) return 'bg-emerald-500 border-emerald-500 text-white'
       if (opt === selected && !result.is_correct) return 'bg-red-50 border border-red-200 text-red-500'
+      return 'bg-gray-50 border border-gray-100 text-gray-300'
     }
+    // Seleccionada, timer aún corriendo: solo marcar seleccionada
+    if (selected === opt) return 'bg-indigo-50 border-2 border-indigo-400 text-gray-800'
     return 'bg-gray-50 border border-gray-100 text-gray-300'
   }
 
   function getIcon(opt) {
-    if (!revealed || !result) return null
+    if (!revealed || !result || !selected) return null
     if (opt === result.correct_option) {
       return (
         <svg className="w-5 h-5 text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -120,9 +117,10 @@ export default function QuizQuestion({ quizEvent, question, player, onResult, to
           const icon = getIcon(opt)
           const isRevealed = revealed && result
           const isCorrect = isRevealed && opt === result.correct_option
+          const isWrong = isRevealed && !isCorrect
           const badgeStyle = isCorrect
             ? 'bg-white/30 text-white'
-            : revealed && opt !== result?.correct_option
+            : isWrong
             ? 'bg-gray-200 text-gray-400'
             : BADGE_COLORS[opt]
 
@@ -144,9 +142,6 @@ export default function QuizQuestion({ quizEvent, question, player, onResult, to
           )
         })}
 
-        {selected && !result && (
-          <p className="text-center text-gray-400 text-xs animate-pulse mt-2">Guardando...</p>
-        )}
       </div>
     </div>
   )
