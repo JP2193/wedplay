@@ -164,6 +164,7 @@ export default function RoomDashboard() {
   const { session, room, refreshRoom } = useAdmin()
   const [copied, setCopied] = useState(false)
   const [showConfig, setShowConfig] = useState(false)
+  const [schedulingKey, setSchedulingKey] = useState(null)
   const [modulesState, setModulesState] = useState(() => {
     const map = {}
     room?.room_modules?.forEach(m => { map[m.module_key] = m })
@@ -179,6 +180,23 @@ export default function RoomDashboard() {
     room.room_modules?.forEach(m => { map[m.module_key] = m })
     setModulesState(map)
   }, [room?.id])
+
+  function toLocalInput(isoString) {
+    if (!isoString) return ''
+    const d = new Date(isoString)
+    const pad = n => String(n).padStart(2, '0')
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+  }
+
+  async function handleSchedule(moduleKey, value) {
+    const scheduled_enable_at = value ? new Date(value).toISOString() : null
+    setModulesState(prev => ({
+      ...prev,
+      [moduleKey]: { ...prev[moduleKey], scheduled_enable_at }
+    }))
+    await updateModule(room.id, moduleKey, { scheduled_enable_at })
+    setSchedulingKey(null)
+  }
 
   async function handleToggle(moduleKey, field, value) {
     const changes = { [field]: value }
@@ -279,9 +297,17 @@ export default function RoomDashboard() {
                   className={`rounded-2xl border p-4 transition-colors duration-200 ${isVisible ? 'border-gray-200 bg-white' : 'border-gray-100 bg-gray-50'}`}
                 >
                   <div className="flex items-start gap-3">
-                    <div className={`flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br ${mod.gradient} flex items-center justify-center text-lg ${!isVisible ? 'opacity-40' : ''}`}>
-                      {mod.emoji}
-                    </div>
+                    {mod.icon ? (
+                      <img
+                        src={mod.icon}
+                        alt={mod.name}
+                        className={`flex-shrink-0 w-10 h-10 object-contain ${!isVisible ? 'opacity-40' : ''}`}
+                      />
+                    ) : (
+                      <div className={`flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br ${mod.gradient} flex items-center justify-center text-lg ${!isVisible ? 'opacity-40' : ''}`}>
+                        {mod.emoji}
+                      </div>
+                    )}
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
@@ -313,7 +339,42 @@ export default function RoomDashboard() {
                           <span className="text-xs text-gray-500">Habilitado</span>
                         </label>
 
-                        <span className="text-xs text-gray-300 italic">Horario: Próximamente</span>
+                        {isVisible && (
+                          modState.scheduled_enable_at && schedulingKey !== mod.key ? (
+                            <span className="text-xs text-rose-400 flex items-center gap-1">
+                              🕐 {new Date(modState.scheduled_enable_at).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' })}
+                              <button
+                                type="button"
+                                onClick={() => setSchedulingKey(mod.key)}
+                                className="text-gray-400 hover:text-rose-400 underline ml-1"
+                              >editar</button>
+                              <button
+                                type="button"
+                                onClick={() => handleSchedule(mod.key, '')}
+                                className="text-gray-300 hover:text-red-400 ml-1"
+                              >×</button>
+                            </span>
+                          ) : schedulingKey === mod.key ? (
+                            <span className="flex items-center gap-1.5">
+                              <input
+                                type="datetime-local"
+                                defaultValue={toLocalInput(modState.scheduled_enable_at)}
+                                onBlur={e => e.target.value && handleSchedule(mod.key, e.target.value)}
+                                autoFocus
+                                className="text-xs border border-rose-200 rounded-lg px-2 py-1 text-gray-600 focus:outline-none focus:ring-1 focus:ring-rose-300"
+                              />
+                              <button type="button" onClick={() => setSchedulingKey(null)} className="text-xs text-gray-400 hover:text-gray-600">Cancelar</button>
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => setSchedulingKey(mod.key)}
+                              className="text-xs text-gray-400 hover:text-rose-400 transition-colors"
+                            >
+                              + Programar horario
+                            </button>
+                          )
+                        )}
                       </div>
                     </div>
 

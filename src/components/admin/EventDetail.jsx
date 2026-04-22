@@ -52,10 +52,12 @@ export default function EventDetail() {
           >
             ← Panel
           </button>
-          <h1 className="font-semibold text-gray-800 text-lg">{event.name}</h1>
-          <div className="flex items-center gap-4 text-sm text-gray-400">
-            <span>Código: <span className="font-mono font-semibold text-gray-700">{event.code}</span></span>
-            <span>{event.questions_per_player} preguntas/jugador</span>
+          <div className="flex items-center gap-3">
+            <img src="/img/bingoh.png" alt="Bingo Humano" className="w-8 h-8 object-contain" />
+            <h1 className="font-semibold text-gray-800 text-lg">Bingo Humano</h1>
+          </div>
+          <div className="text-sm text-gray-400">
+            {event.questions_per_player} preguntas/jugador
           </div>
         </div>
       </header>

@@ -35,8 +35,7 @@ function InfoTooltip({ text }) {
   )
 }
 
-export default function CreateEventModal({ adminId, onClose, onCreated }) {
-  const [name, setName] = useState('')
+export default function CreateEventModal({ adminId, eventName = 'Bingo Humano', onClose, onCreated }) {
   const [questionsPerPlayer, setQuestionsPerPlayer] = useState(10)
   const [dynamicMode, setDynamicMode] = useState(false)
   const [easyCount, setEasyCount] = useState(7)
@@ -48,7 +47,6 @@ export default function CreateEventModal({ adminId, onClose, onCreated }) {
 
   async function handleSubmit(e) {
     e.preventDefault()
-    if (!name.trim()) return
 
     if (dynamicMode && (easyCount < 1 || hardCount < 1)) {
       setError('En modo dinámico necesitás al menos 1 pregunta fácil y 1 difícil.')
@@ -75,7 +73,7 @@ export default function CreateEventModal({ adminId, onClose, onCreated }) {
       .from('events')
       .insert({
         admin_id: adminId,
-        name: name.trim(),
+        name: eventName || 'Bingo Humano',
         code,
         questions_per_player: dynamicMode ? totalDynamic : questionsPerPlayer,
         dynamic_mode: dynamicMode,
@@ -102,19 +100,6 @@ export default function CreateEventModal({ adminId, onClose, onCreated }) {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del evento</label>
-            <input
-              type="text"
-              className="input-field"
-              placeholder="Ej: Boda de María y Juan"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              required
-              autoFocus
-            />
-          </div>
-
           {/* Modo dinámico toggle */}
           <div className="bg-gray-50 rounded-xl p-4 space-y-3">
             <div className="flex items-center justify-between">
@@ -187,7 +172,7 @@ export default function CreateEventModal({ adminId, onClose, onCreated }) {
 
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={onClose} className="btn-secondary flex-1">Cancelar</button>
-            <button type="submit" disabled={loading || !name.trim()} className="btn-primary flex-1">
+            <button type="submit" disabled={loading} className="btn-primary flex-1">
               {loading ? 'Creando...' : 'Crear evento'}
             </button>
           </div>

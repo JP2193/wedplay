@@ -163,6 +163,10 @@ export default function GuestLobbyPage() {
             {MODULES.filter(m => moduleMap[m.key]).map(mod => {
               const modState = moduleMap[mod.key]
               const isEnabled = modState?.is_enabled
+              const scheduledAt = modState?.scheduled_enable_at
+              const scheduledLabel = scheduledAt
+                ? new Date(scheduledAt).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
+                : null
 
               return (
                 <button
@@ -174,11 +178,16 @@ export default function GuestLobbyPage() {
                 >
                   {/* Card background */}
                   <div className={`bg-gradient-to-br ${mod.gradient} p-5 min-h-[130px] flex flex-col justify-between`}>
-                    <span className="text-3xl">{mod.emoji}</span>
+                    {mod.icon
+                      ? <img src={mod.icon} alt={mod.name} className="w-10 h-10 object-contain" />
+                      : <span className="text-3xl">{mod.emoji}</span>
+                    }
                     <div>
                       <p className="text-white font-bold text-sm leading-tight">{mod.name}</p>
                       {!isEnabled && (
-                        <p className="text-white/70 text-xs mt-0.5">Pronto</p>
+                        <p className="text-white/70 text-xs mt-0.5">
+                          {scheduledLabel ? `Se habilita a las ${scheduledLabel}` : 'Pronto'}
+                        </p>
                       )}
                     </div>
                   </div>
