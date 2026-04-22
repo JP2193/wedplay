@@ -160,7 +160,7 @@ export default function QuizRoomGuestPage() {
   }
   if (quizEvent.status === 'question') {
     if (!currentQuestion) return <div className="min-h-screen bg-gray-900 flex items-center justify-center text-gray-400 text-sm">Cargando pregunta...</div>
-    return <QuizQuestion quizEvent={quizEvent} question={currentQuestion} player={player} onResult={setLastResult} />
+    return <QuizQuestion quizEvent={quizEvent} question={currentQuestion} player={player} onResult={setLastResult} totalQuestions={questions.length} />
   }
   if (quizEvent.status === 'ranking') {
     const isLastQuestion = quizEvent.current_question_index >= questions.length - 1

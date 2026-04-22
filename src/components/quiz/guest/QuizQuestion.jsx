@@ -2,14 +2,14 @@ import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../../../lib/supabase'
 import QuizCountdown from '../shared/QuizCountdown'
 
-const OPTION_STYLES = {
-  A: { base: 'bg-blue-500 hover:bg-blue-600 text-white', correct: 'bg-emerald-500 text-white', wrong: 'bg-red-400 text-white', neutral: 'bg-blue-100 text-blue-400' },
-  B: { base: 'bg-amber-500 hover:bg-amber-600 text-white', correct: 'bg-emerald-500 text-white', wrong: 'bg-red-400 text-white', neutral: 'bg-amber-100 text-amber-400' },
-  C: { base: 'bg-rose-500 hover:bg-rose-600 text-white', correct: 'bg-emerald-500 text-white', wrong: 'bg-red-400 text-white', neutral: 'bg-rose-100 text-rose-400' },
-  D: { base: 'bg-emerald-500 hover:bg-emerald-600 text-white', correct: 'bg-emerald-500 text-white', wrong: 'bg-red-400 text-white', neutral: 'bg-emerald-100 text-emerald-400' },
+const BADGE_COLORS = {
+  A: 'bg-indigo-500 text-white',
+  B: 'bg-amber-500 text-white',
+  C: 'bg-rose-500 text-white',
+  D: 'bg-emerald-500 text-white',
 }
 
-export default function QuizQuestion({ quizEvent, question, player, onResult }) {
+export default function QuizQuestion({ quizEvent, question, player, onResult, totalQuestions }) {
   const [selected, setSelected] = useState(null)
   const [result, setResult] = useState(null)
   const [revealed, setRevealed] = useState(false)
@@ -43,6 +43,7 @@ export default function QuizQuestion({ quizEvent, question, player, onResult }) 
 
     if (!error && data) {
       setResult(data)
+      setRevealed(true)
       onResult?.(data)
     }
     setSubmitting(false)
@@ -52,56 +53,99 @@ export default function QuizQuestion({ quizEvent, question, player, onResult }) 
     setRevealed(true)
   }
 
-  function getStyle(opt) {
-    if (!selected) return OPTION_STYLES[opt].base
+  function getOptionStyle(opt) {
+    // Sin selección: card normal
+    if (!selected) {
+      return 'bg-white border border-gray-200 text-gray-800 active:scale-[0.98]'
+    }
+    // Seleccionada, esperando resultado
     if (!revealed) {
-      if (selected === opt) return OPTION_STYLES[opt].base + ' opacity-70'
-      return OPTION_STYLES[opt].neutral
+      if (selected === opt) return 'bg-white border-2 border-indigo-400 text-gray-800 opacity-80'
+      return 'bg-gray-50 border border-gray-100 text-gray-300'
     }
-    // revealed
+    // Revelado
     if (result) {
-      if (opt === result.correct_option) return OPTION_STYLES[opt].correct
-      if (opt === selected && !result.is_correct) return OPTION_STYLES[opt].wrong
+      if (opt === result.correct_option) return 'bg-emerald-500 border-emerald-500 text-white'
+      if (opt === selected && !result.is_correct) return 'bg-red-50 border border-red-200 text-red-500'
     }
-    return OPTION_STYLES[opt].neutral
+    return 'bg-gray-50 border border-gray-100 text-gray-300'
   }
 
+  function getIcon(opt) {
+    if (!revealed || !result) return null
+    if (opt === result.correct_option) {
+      return (
+        <svg className="w-5 h-5 text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+        </svg>
+      )
+    }
+    if (opt === selected && !result.is_correct) {
+      return (
+        <svg className="w-5 h-5 text-red-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      )
+    }
+    return null
+  }
+
+  const startedAt = quizEvent.question_started_at || mountTimeRef.current
+  const questionNumber = (quizEvent.current_question_index ?? 0) + 1
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-4">
-        <span className="text-gray-400 text-sm">{player.full_name}</span>
+      <div className="bg-white border-b border-gray-100 px-5 py-4 flex items-center justify-between">
+        <span className="text-sm font-semibold text-gray-400">
+          {questionNumber}
+          {totalQuestions ? <span className="text-gray-300"> / {totalQuestions}</span> : null}
+        </span>
         <QuizCountdown
           totalSeconds={quizEvent.timer_seconds}
-          startedAt={mountTimeRef.current}
+          startedAt={startedAt}
           onExpire={handleExpire}
         />
-        <span className="text-gray-400 text-sm">#{quizEvent.current_question_index + 1}</span>
       </div>
 
       {/* Pregunta */}
-      <div className="flex-1 flex flex-col justify-center px-5 gap-6">
-        <div className="bg-white/10 rounded-2xl p-6 text-center">
-          <p className="text-white text-xl font-semibold leading-snug">{question.text}</p>
-        </div>
+      <div className="px-5 pt-6 pb-4">
+        <p className="text-xs font-bold tracking-widest text-rose-400 uppercase mb-3">Pregunta</p>
+        <h2 className="text-2xl font-bold text-gray-800 leading-snug">{question.text}</h2>
+      </div>
 
-        {/* Opciones */}
-        <div className="grid grid-cols-2 gap-3">
-          {['A','B','C','D'].map(opt => (
+      {/* Opciones */}
+      <div className="flex-1 px-5 pb-8 flex flex-col gap-3 justify-start pt-2">
+        {['A', 'B', 'C', 'D'].map(opt => {
+          const icon = getIcon(opt)
+          const isRevealed = revealed && result
+          const isCorrect = isRevealed && opt === result.correct_option
+          const badgeStyle = isCorrect
+            ? 'bg-white/30 text-white'
+            : revealed && opt !== result?.correct_option
+            ? 'bg-gray-200 text-gray-400'
+            : BADGE_COLORS[opt]
+
+          return (
             <button
               key={opt}
               onClick={() => handleSelect(opt)}
               disabled={!!selected || submitting}
-              className={`rounded-2xl py-5 px-3 font-bold text-sm transition-all active:scale-95 ${getStyle(opt)}`}
+              className={`w-full flex items-center gap-4 px-4 py-4 rounded-2xl border transition-all duration-200 text-left ${getOptionStyle(opt)}`}
             >
-              <span className="block text-xs font-medium opacity-80 mb-1">{opt}</span>
-              {question[`option_${opt.toLowerCase()}`]}
+              <span className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold shrink-0 transition-colors duration-200 ${badgeStyle}`}>
+                {opt}
+              </span>
+              <span className="flex-1 text-sm font-medium leading-snug">
+                {question[`option_${opt.toLowerCase()}`]}
+              </span>
+              {icon}
             </button>
-          ))}
-        </div>
+          )
+        })}
 
         {selected && !result && (
-          <div className="text-center text-gray-400 text-sm animate-pulse">Guardando...</div>
+          <p className="text-center text-gray-400 text-xs animate-pulse mt-2">Guardando...</p>
         )}
       </div>
     </div>
