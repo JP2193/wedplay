@@ -68,7 +68,7 @@ const OPTION_LIGHT = {
 
 /* ─── Lobby display ─────────────────────────────────────── */
 function LobbyDisplay({ room, quizEvent, players }) {
-  const joinUrl = `${window.location.origin}/${room.code}`
+  const joinUrl = `${window.location.origin}/${room.code}/quiz`
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-purple-900 to-violet-950 flex flex-col items-center justify-center p-8 relative overflow-hidden">
