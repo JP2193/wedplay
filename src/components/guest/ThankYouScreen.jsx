@@ -37,7 +37,7 @@ export default function ThankYouScreen({ onBack }) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-amber-50 flex items-center justify-center p-6">
         <div className="text-center space-y-6 max-w-xs">
-          <div className="text-6xl animate-float">🎯</div>
+          <img src="/img/bingoh.png" alt="Bingo" className="w-20 h-20 object-contain mx-auto animate-float" />
           <h1 className="text-2xl font-semibold text-gray-800">¡Que disfrutes la fiesta!</h1>
           <p className="text-gray-400 text-sm">El anfitrión ya sabe que cantaste Bingo.</p>
           {onBack && (

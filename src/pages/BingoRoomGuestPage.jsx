@@ -6,6 +6,7 @@ import GameScreen from '../components/guest/GameScreen'
 import ThankYouScreen from '../components/guest/ThankYouScreen'
 
 const TOKEN_KEY = (eventId, fullName) => `bingo-token-${eventId}-${fullName}`
+const RULES_SEEN_KEY = (code) => `bingo-rules-seen-${code}`
 
 function getOrCreateToken(eventId, fullName) {
   const key = TOKEN_KEY(eventId, fullName)
@@ -14,6 +15,14 @@ function getOrCreateToken(eventId, fullName) {
   const token = crypto.randomUUID()
   localStorage.setItem(key, token)
   return token
+}
+
+function hasSeenRules(code) {
+  return !!localStorage.getItem(RULES_SEEN_KEY(code))
+}
+
+function markRulesSeen(code) {
+  localStorage.setItem(RULES_SEEN_KEY(code), '1')
 }
 
 function shuffle(arr) {
@@ -25,12 +34,83 @@ function shuffle(arr) {
   return a
 }
 
+/* ─── Modal de reglas ─────────────────────────────────── */
+function RulesModal({ onStart, onBack }) {
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-rose-500 to-amber-400 px-6 pt-6 pb-5 text-center">
+          <img src="/img/bingoh.png" alt="Bingo" className="w-14 h-14 object-contain mx-auto mb-3" />
+          <h2 className="text-xl font-black text-white">Bingo Humano</h2>
+          <p className="text-white/80 text-sm mt-1">¿Cómo se juega?</p>
+        </div>
+
+        {/* Reglas */}
+        <div className="px-6 py-5 space-y-3">
+          {[
+            { icon: '🔍', text: 'Encontrá al invitado que cumple con cada consigna y completá su nombre.' },
+            { icon: '↔️', text: 'Podés navegar entre las preguntas libremente.' },
+            { icon: '🏁', text: 'Al terminar, hacé click en "Cantar Bingo" para enviar tu cartón.' },
+            { icon: '🏆', text: '¡El primero en encontrar a todos los invitados gana!' },
+            { icon: '⚠️', text: 'Si volvés al lobby antes de enviar, tus respuestas no serán guardadas.' },
+          ].map(({ icon, text }, i) => (
+            <div key={i} className="flex gap-3 items-start">
+              <span className="text-lg shrink-0 mt-0.5">{icon}</span>
+              <p className="text-gray-600 text-sm leading-relaxed">{text}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Botones */}
+        <div className="px-6 pb-6 space-y-2">
+          <button
+            onClick={onStart}
+            className="btn-primary w-full"
+          >
+            ¡Comenzar juego!
+          </button>
+          <button
+            onClick={onBack}
+            className="btn-ghost w-full text-sm"
+          >
+            Volver al lobby
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ─── Pantalla de re-entrada (ya cantó bingo) ─────────── */
+function AlreadyFinishedScreen({ onBack }) {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-amber-50 flex items-center justify-center p-6">
+      <div className="text-center space-y-5 max-w-xs">
+        <img src="/img/bingoh.png" alt="Bingo" className="w-16 h-16 object-contain mx-auto opacity-80" />
+        <div className="space-y-2">
+          <h1 className="text-xl font-semibold text-gray-800">¡Ya cantaste Bingo!</h1>
+          <p className="text-gray-400 text-sm leading-relaxed">
+            El anfitrión ya fue notificado. Esperá a que se anuncie al ganador.
+          </p>
+        </div>
+        <button onClick={onBack} className="btn-secondary text-sm px-6">
+          ← Volver al lobby
+        </button>
+      </div>
+    </div>
+  )
+}
+
+/* ─── BingoRoomGuestPage ──────────────────────────────── */
 export default function BingoRoomGuestPage() {
   const { code } = useParams()
   const navigate = useNavigate()
   const [player, setPlayer] = useState(null)
   const [questions, setQuestions] = useState([])
   const [finished, setFinished] = useState(false)
+  const [showRules, setShowRules] = useState(false)
+  const [ready, setReady] = useState(false)   // true = pasó las reglas, mostrar juego
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -46,11 +126,9 @@ export default function BingoRoomGuestPage() {
       return
     }
 
-    // Get room
     const room = await getRoomByCode(code)
     if (!room) { navigate('/', { replace: true }); return }
 
-    // Get bingo event for this room
     const { data: event } = await supabase
       .from('events')
       .select('*')
@@ -65,7 +143,6 @@ export default function BingoRoomGuestPage() {
 
     const sessionToken = getOrCreateToken(event.id, guestName)
 
-    // Look up existing player
     const { data: existingPlayer } = await supabase
       .from('players')
       .select('*')
@@ -92,10 +169,13 @@ export default function BingoRoomGuestPage() {
       setPlayer({ ...existingPlayer, _sessionToken: sessionToken })
       setQuestions(ordered)
       setLoading(false)
+
+      // Ya jugó antes (tiene cartón en curso): saltar reglas
+      setReady(true)
       return
     }
 
-    // Create new player
+    // Jugador nuevo: cargar preguntas pero mostrar reglas primero
     const { data: allQuestions } = await supabase
       .from('questions')
       .select('*')
@@ -139,7 +219,22 @@ export default function BingoRoomGuestPage() {
     setPlayer({ ...newPlayer, _sessionToken: sessionToken })
     setQuestions(selectedQuestions)
     setLoading(false)
+
+    // Primera vez: mostrar modal de reglas
+    if (!hasSeenRules(code)) {
+      setShowRules(true)
+    } else {
+      setReady(true)
+    }
   }
+
+  function handleStartGame() {
+    markRulesSeen(code)
+    setShowRules(false)
+    setReady(true)
+  }
+
+  // ── Renders ──
 
   if (loading) {
     return (
@@ -161,7 +256,26 @@ export default function BingoRoomGuestPage() {
     )
   }
 
-  if (finished) return <ThankYouScreen onBack={() => navigate(`/${code}`)} />
+  // Ya cantó bingo en una sesión anterior → pantalla simple
+  if (finished) {
+    return <AlreadyFinishedScreen onBack={() => navigate(`/${code}`)} />
+  }
+
+  // Modal de reglas (primera vez, antes de empezar)
+  if (showRules) {
+    return (
+      <>
+        {/* Fondo semitransparente debajo del modal */}
+        <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-amber-50" />
+        <RulesModal
+          onStart={handleStartGame}
+          onBack={() => navigate(`/${code}`)}
+        />
+      </>
+    )
+  }
+
+  if (!ready || !player) return null
 
   return (
     <GameScreen
