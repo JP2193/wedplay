@@ -74,11 +74,11 @@ export default function QuizQuestion({ quizEvent, question, player, onResult, to
       return { cls: 'bg-white/5 border border-white/10 text-white/30', badge: 'from-white/10 to-white/10', icon: null }
     }
 
-    // Selected, not revealed yet — highlight neutro sin implicar correcto/incorrecto
+    // Selected, not revealed yet — borde ámbar animado, "esperando"
     if (opt === selected) {
       return {
-        cls: 'bg-white/20 border-2 border-white/60 text-white shadow-md',
-        badge: 'from-white/40 to-white/30',
+        cls: 'bg-white/15 border-2 border-amber-400 text-white selected-waiting',
+        badge: 'from-amber-400/60 to-amber-500/50',
         icon: <CheckmarkPending />
       }
     }

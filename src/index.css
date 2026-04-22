@@ -33,6 +33,21 @@ body {
   animation: confetti-fall 1.2s ease-in forwards;
 }
 
+/* Quiz: opción seleccionada esperando resultado */
+@keyframes waiting-glow {
+  0%, 100% {
+    box-shadow: 0 0 0px 0px rgba(251, 191, 36, 0),
+                0 0 8px 0px rgba(251, 191, 36, 0);
+  }
+  50% {
+    box-shadow: 0 0 0px 3px rgba(251, 191, 36, 0.25),
+                0 0 18px 4px rgba(251, 191, 36, 0.15);
+  }
+}
+.selected-waiting {
+  animation: waiting-glow 1.4s ease-in-out infinite;
+}
+
 @layer components {
   .btn-primary {
     @apply bg-rose-400 hover:bg-rose-500 text-white font-medium py-3 px-6 rounded-xl transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
