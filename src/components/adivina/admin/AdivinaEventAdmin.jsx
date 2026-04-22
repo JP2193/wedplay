@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../../../lib/supabase'
+import { useAdmin } from '../../../pages/AdminPage'
 import AdivinaQuestionManager from './AdivinaQuestionManager'
 import AdivinaLobby from './AdivinaLobby'
 import AdivinaLiveQuestion from './AdivinaLiveQuestion'
 import AdivinaLiveRanking from './AdivinaLiveRanking'
 import QuizRankingTable from '../../quiz/shared/QuizRankingTable'
 
-export default function AdivinaEventAdmin({ session }) {
+export default function AdivinaEventAdmin() {
+  const { session } = useAdmin()
   const { eventId } = useParams()
   const navigate = useNavigate()
   const [adivinaEvent, setAdivinaEvent] = useState(null)

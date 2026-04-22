@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../../../lib/supabase'
+import { useAdmin } from '../../../pages/AdminPage'
 import QuizQuestionManager from './QuizQuestionManager'
 import QuizLobby from './QuizLobby'
 import QuizLiveQuestion from './QuizLiveQuestion'
 import QuizLiveRanking from './QuizLiveRanking'
 import QuizRankingTable from '../shared/QuizRankingTable'
 
-export default function QuizEventAdmin({ session }) {
+export default function QuizEventAdmin() {
+  const { session } = useAdmin()
   const { eventId } = useParams()
   const navigate = useNavigate()
   const [quizEvent, setQuizEvent] = useState(null)

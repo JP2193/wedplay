@@ -1,6 +1,15 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import LandingPage from './pages/LandingPage'
 import AdminPage from './pages/AdminPage'
+import RoomDashboard from './components/admin/RoomDashboard'
+import BingoAdminSection from './components/admin/BingoAdminSection'
+import QuizAdminSection from './components/admin/QuizAdminSection'
+import AdivinaAdminSection from './components/admin/AdivinaAdminSection'
+import DeseosAdminSection from './components/admin/DeseosAdminSection'
+import TimelineAdminSection from './components/admin/TimelineAdminSection'
+import EventDetail from './components/admin/EventDetail'
+import QuizEventAdmin from './components/quiz/admin/QuizEventAdmin'
+import AdivinaEventAdmin from './components/adivina/admin/AdivinaEventAdmin'
 import GuestLobbyPage from './pages/GuestLobbyPage'
 import BingoRoomGuestPage from './pages/BingoRoomGuestPage'
 import QuizRoomGuestPage from './pages/QuizRoomGuestPage'
@@ -12,13 +21,23 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Landing: code entry for guests, admin login link */}
+        {/* Landing */}
         <Route path="/" element={<LandingPage />} />
 
-        {/* Admin panel (unified, Google OAuth protected) */}
-        <Route path="/admin/*" element={<AdminPage />} />
+        {/* Admin — layout route con Outlet, sin catch-all anidado */}
+        <Route path="/admin" element={<AdminPage />}>
+          <Route index element={<RoomDashboard />} />
+          <Route path="bingo" element={<BingoAdminSection />} />
+          <Route path="bingo/events/:eventId" element={<EventDetail />} />
+          <Route path="quiz" element={<QuizAdminSection />} />
+          <Route path="quiz/events/:eventId" element={<QuizEventAdmin />} />
+          <Route path="adivina" element={<AdivinaAdminSection />} />
+          <Route path="adivina/events/:eventId" element={<AdivinaEventAdmin />} />
+          <Route path="deseos" element={<DeseosAdminSection />} />
+          <Route path="timeline" element={<TimelineAdminSection />} />
+        </Route>
 
-        {/* Guest: room lobby + game routes */}
+        {/* Guest */}
         <Route path="/:code" element={<GuestLobbyPage />} />
         <Route path="/:code/bingo" element={<BingoRoomGuestPage />} />
         <Route path="/:code/quiz" element={<QuizRoomGuestPage />} />

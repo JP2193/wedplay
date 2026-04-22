@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import { useAdmin } from '../../pages/AdminPage'
 import QuestionList from './QuestionList'
 import FinishedPlayers from './FinishedPlayers'
 
-export default function EventDetail({ session }) {
+export default function EventDetail() {
+  const { session } = useAdmin()
   const { eventId } = useParams()
   const navigate = useNavigate()
   const [event, setEvent] = useState(null)
