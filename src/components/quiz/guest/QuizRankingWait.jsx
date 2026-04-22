@@ -26,8 +26,7 @@ export default function QuizRankingWait({ player, lastResult, question, isLastQu
         const counts = { A: 0, B: 0, C: 0, D: 0 }
         data.forEach(r => { if (counts[r.selected_option] !== undefined) counts[r.selected_option]++ })
         setVoteCounts(counts)
-        // Trigger bar animation after a short delay
-        setTimeout(() => setAnimating(true), 100)
+        setTimeout(() => setAnimating(true), 150)
       })
   }, [question?.id])
 
@@ -37,46 +36,47 @@ export default function QuizRankingWait({ player, lastResult, question, isLastQu
     <div className="min-h-screen bg-gradient-to-b from-[#1a1040] via-[#1e1355] to-[#160e35] flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-sm space-y-5">
 
-        {/* Verdict badge */}
-        <div className="text-center space-y-2">
-          {didAnswer ? (
-            <>
-              <div className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm
-                ${isCorrect
-                  ? 'bg-emerald-500/20 border border-emerald-400/50 text-emerald-300'
-                  : 'bg-red-500/20 border border-red-400/50 text-red-300'
-                }`}>
-                <span className="text-lg">{isCorrect ? '✅' : '❌'}</span>
-                {isCorrect ? '¡Acertaste!' : 'Incorrecto'}
-              </div>
-            </>
-          ) : (
+        {/* Verdict — muy diferenciado entre acertaste e incorrecto */}
+        <div className="text-center">
+          {!didAnswer ? (
             <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm bg-white/10 border border-white/20 text-white/60">
-              <span className="text-lg">⏰</span>
-              No respondiste a tiempo
+              <span>⏰</span> No respondiste a tiempo
+            </div>
+          ) : isCorrect ? (
+            /* Acertaste: verde, grande, celebratorio */
+            <div className="inline-flex items-center gap-2.5 bg-emerald-500 px-6 py-3 rounded-2xl shadow-lg shadow-emerald-500/30">
+              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+              </svg>
+              <span className="text-white font-black text-lg">¡Acertaste!</span>
+            </div>
+          ) : (
+            /* Incorrecto: rojo sólido, grande, claro */
+            <div className="inline-flex items-center gap-2.5 bg-red-500 px-6 py-3 rounded-2xl shadow-lg shadow-red-500/30">
+              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              <span className="text-white font-black text-lg">Incorrecto</span>
             </div>
           )}
         </div>
 
-        {/* Correct answer highlight */}
+        {/* Respuesta correcta — neutral, sin color que confunda */}
         {correctText && (
-          <div className="bg-emerald-500/15 border border-emerald-400/30 rounded-2xl px-5 py-3.5 flex items-start gap-3">
-            <div className="w-7 h-7 bg-emerald-500 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
-              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <div>
-              <p className="text-emerald-400 text-[0.7rem] font-bold uppercase tracking-widest">Respuesta correcta</p>
-              <p className="text-white font-semibold text-base mt-0.5">{correctText}</p>
-            </div>
+          <div className="bg-white/8 border border-white/15 rounded-2xl px-5 py-3.5">
+            <p className="text-white/40 text-[0.65rem] font-bold uppercase tracking-widest mb-1">
+              Respuesta correcta
+            </p>
+            <p className="text-white font-semibold text-base">{correctText}</p>
           </div>
         )}
 
-        {/* Vote breakdown */}
+        {/* Respuestas del grupo — correcta en verde, incorrectas grises/apagadas */}
         {question && (
           <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-3">
-            <p className="text-white/40 text-[0.65rem] font-bold uppercase tracking-widest text-center">Respuestas del grupo</p>
+            <p className="text-white/30 text-[0.65rem] font-bold uppercase tracking-widest text-center">
+              Respuestas del grupo
+            </p>
             {OPTIONS.map(key => {
               const optText = question[`option_${key.toLowerCase()}`]
               if (!optText) return null
@@ -87,21 +87,26 @@ export default function QuizRankingWait({ player, lastResult, question, isLastQu
               return (
                 <div key={key} className="space-y-1.5">
                   <div className="flex items-center gap-2.5">
-                    <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black text-white shrink-0
-                      ${isCorrectOpt ? 'bg-emerald-500' : 'bg-red-500/60'}`}>
+                    <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black shrink-0
+                      ${isCorrectOpt
+                        ? 'bg-emerald-500 text-white'
+                        : 'bg-white/10 text-white/30'
+                      }`}>
                       {key}
                     </span>
-                    <span className={`flex-1 text-sm truncate font-medium ${isCorrectOpt ? 'text-white' : 'text-white/50'}`}>
+                    <span className={`flex-1 text-sm truncate font-medium
+                      ${isCorrectOpt ? 'text-white' : 'text-white/30'}`}>
                       {optText}
                     </span>
-                    <span className={`text-sm font-bold tabular-nums ${isCorrectOpt ? 'text-emerald-400' : 'text-white/30'}`}>
+                    <span className={`text-sm font-bold tabular-nums
+                      ${isCorrectOpt ? 'text-emerald-400' : 'text-white/20'}`}>
                       {pct}%
                     </span>
                   </div>
-                  <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                  <div className="h-2 bg-white/8 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all duration-700 ease-out
-                        ${isCorrectOpt ? 'bg-emerald-500' : 'bg-red-500/50'}`}
+                        ${isCorrectOpt ? 'bg-emerald-500' : 'bg-white/20'}`}
                       style={{ width: animating ? `${pct}%` : '0%' }}
                     />
                   </div>
@@ -111,7 +116,7 @@ export default function QuizRankingWait({ player, lastResult, question, isLastQu
           </div>
         )}
 
-        {/* Score + waiting */}
+        {/* Puntaje + espera */}
         <div className="text-center space-y-2 pt-1">
           <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-2xl px-5 py-3">
             <span className="text-white/50 text-sm">Puntaje</span>
@@ -126,11 +131,10 @@ export default function QuizRankingWait({ player, lastResult, question, isLastQu
         </div>
       </div>
 
-      {/* Decorative dots */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden -z-10">
         <div className="absolute top-10 right-8 w-1 h-1 bg-white/30 rounded-full" />
-        <div className="absolute top-24 left-12 w-1.5 h-1.5 bg-purple-300/30 rounded-full" />
-        <div className="absolute bottom-20 right-6 w-1.5 h-1.5 bg-purple-200/20 rounded-full" />
+        <div className="absolute top-24 left-12 w-1.5 h-1.5 bg-purple-300/20 rounded-full" />
+        <div className="absolute bottom-20 right-6 w-1.5 h-1.5 bg-purple-200/15 rounded-full" />
       </div>
     </div>
   )
