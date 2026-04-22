@@ -66,6 +66,7 @@ export default function AdivinaQuestionManager({ adivinaEventId, person1Name, pe
   const [editingId, setEditingId] = useState(null)
   const [editForm, setEditForm] = useState(emptyForm())
   const [saving, setSaving] = useState(false)
+  const [showQuestions, setShowQuestions] = useState(false)
 
   useEffect(() => { fetchQuestions() }, [adivinaEventId])
 
@@ -147,7 +148,17 @@ export default function AdivinaQuestionManager({ adivinaEventId, person1Name, pe
         </div>
       )}
 
-      <div className="space-y-2">
+      {questions.length > 0 && (
+        <button
+          onClick={() => setShowQuestions(v => !v)}
+          className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+        >
+          <span>{showQuestions ? 'Ocultar preguntas' : `Ver preguntas (${questions.length})`}</span>
+          <span className={`transition-transform duration-200 ${showQuestions ? 'rotate-180' : ''}`}>▾</span>
+        </button>
+      )}
+
+      {showQuestions && <div className="space-y-2">
         {questions.map((q, idx) => (
           <div key={q.id} className="card">
             {editingId === q.id ? (
@@ -176,8 +187,8 @@ export default function AdivinaQuestionManager({ adivinaEventId, person1Name, pe
             )}
           </div>
         ))}
-      </div>
-      {questions.length > 0 && <p className="text-xs text-gray-400 text-right">{questions.length} preguntas</p>}
+      </div>}
+      {questions.length > 0 && !showQuestions && <p className="text-xs text-gray-400 text-right">{questions.length} preguntas cargadas</p>}
     </div>
   )
 }

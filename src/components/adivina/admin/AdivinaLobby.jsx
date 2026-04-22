@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../../lib/supabase'
 
-export default function AdivinaLobby({ adivinaEvent, onStart }) {
+export default function AdivinaLobby({ adivinaEvent, room, onStart }) {
   const [players, setPlayers] = useState([])
   const [starting, setStarting] = useState(false)
 
@@ -37,11 +37,14 @@ export default function AdivinaLobby({ adivinaEvent, onStart }) {
 
   return (
     <div className="space-y-6">
-      <div className="card text-center space-y-2">
-        <p className="text-gray-500 text-sm">Código del juego</p>
-        <p className="text-4xl font-black font-mono text-rose-400 tracking-widest">{adivinaEvent.code}</p>
-        <p className="text-gray-400 text-xs">Compartí este código con los jugadores</p>
-      </div>
+      {room && (
+        <button
+          onClick={() => window.open(`/${room.code}/adivina/display`, '_blank')}
+          className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-violet-50 border border-violet-200 text-violet-600 font-medium text-sm rounded-xl hover:bg-violet-100 transition-colors"
+        >
+          📺 Abrir pantalla de proyección
+        </button>
+      )}
 
       <div className="card space-y-3">
         <div className="flex items-center justify-between">

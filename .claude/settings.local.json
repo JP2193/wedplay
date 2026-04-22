@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm create *)",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(gh repo *)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(npx skills *)",
+      "mcp__magic__21st_magic_component_refiner",
+      "Bash(grep *)",
+      "Bash(find *)",
+      "Bash(ls -la /c/Users/javit/Desktop/Proyectos/bingo-humano/supabase*)"
+    ]
+  }
+}

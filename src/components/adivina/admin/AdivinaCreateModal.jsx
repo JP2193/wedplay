@@ -1,13 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../../../lib/supabase'
 
-function generateCode(length = 6) {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-  let code = ''
-  for (let i = 0; i < length; i++) code += chars[Math.floor(Math.random() * chars.length)]
-  return code
-}
-
 function PhotoUpload({ label, preview, onChange }) {
   return (
     <div className="flex flex-col items-center gap-2">
@@ -29,8 +22,7 @@ function PhotoUpload({ label, preview, onChange }) {
   )
 }
 
-export default function AdivinaCreateModal({ adminId, onClose, onCreated }) {
-  const [name, setName] = useState('')
+export default function AdivinaCreateModal({ adminId, eventName, onClose, onCreated }) {
   const [person1Name, setPerson1Name] = useState('Novio')
   const [person2Name, setPerson2Name] = useState('Novia')
   const [person1File, setPerson1File] = useState(null)
@@ -41,10 +33,10 @@ export default function AdivinaCreateModal({ adminId, onClose, onCreated }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  function handleFileChange(e, setPerson, setPreview) {
+  function handleFileChange(e, setFile, setPreview) {
     const file = e.target.files[0]
     if (!file) return
-    setPerson(file)
+    setFile(file)
     setPreview(URL.createObjectURL(file))
   }
 
@@ -59,21 +51,13 @@ export default function AdivinaCreateModal({ adminId, onClose, onCreated }) {
 
   async function handleSubmit(e) {
     e.preventDefault()
-    if (!name.trim() || !person1Name.trim() || !person2Name.trim()) return
+    if (!person1Name.trim() || !person2Name.trim()) return
     setLoading(true)
     setError(null)
 
     try {
-      let code = generateCode()
-      for (let i = 0; i < 5; i++) {
-        const { data } = await supabase.from('adivina_events').select('id').eq('code', code).maybeSingle()
-        if (!data) break
-        code = generateCode()
-      }
-
       let person1PhotoUrl = null
       let person2PhotoUrl = null
-
       if (person1File) person1PhotoUrl = await uploadPhoto(person1File, 'person1')
       if (person2File) person2PhotoUrl = await uploadPhoto(person2File, 'person2')
 
@@ -81,8 +65,7 @@ export default function AdivinaCreateModal({ adminId, onClose, onCreated }) {
         .from('adivina_events')
         .insert({
           admin_id: adminId,
-          name: name.trim(),
-          code,
+          name: eventName || 'Adivina Quién',
           timer_seconds: timer,
           person1_name: person1Name.trim(),
           person2_name: person2Name.trim(),
@@ -92,11 +75,8 @@ export default function AdivinaCreateModal({ adminId, onClose, onCreated }) {
         .select()
         .single()
 
-      if (insertError) {
-        setError('Error al crear el evento.')
-      } else {
-        onCreated(data)
-      }
+      if (insertError) setError('Error al crear el juego.')
+      else onCreated(data)
     } catch (err) {
       setError('Error al subir las fotos: ' + (err?.message ?? JSON.stringify(err)))
     }
@@ -107,23 +87,11 @@ export default function AdivinaCreateModal({ adminId, onClose, onCreated }) {
     <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl w-full max-w-md p-6 space-y-5 shadow-xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-800">Nuevo juego</h2>
+          <h2 className="text-lg font-semibold text-gray-800">Nuevo Adivina Quién</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl">×</button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del juego</label>
-            <input
-              type="text"
-              className="input-field"
-              placeholder="Ej: ¿Quién es más...?"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              required autoFocus
-            />
-          </div>
-
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-3">Protagonistas</label>
             <div className="flex items-start justify-around gap-4">
@@ -142,11 +110,9 @@ export default function AdivinaCreateModal({ adminId, onClose, onCreated }) {
                   required
                 />
               </div>
-
               <div className="flex items-center pt-8">
                 <span className="text-gray-300 font-bold text-lg">vs</span>
               </div>
-
               <div className="flex-1 flex flex-col gap-2">
                 <PhotoUpload
                   label={person2Name || 'Persona 2'}
@@ -181,7 +147,7 @@ export default function AdivinaCreateModal({ adminId, onClose, onCreated }) {
 
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={onClose} className="btn-secondary flex-1">Cancelar</button>
-            <button type="submit" disabled={loading || !name.trim()} className="btn-primary flex-1">
+            <button type="submit" disabled={loading} className="btn-primary flex-1">
               {loading ? 'Creando...' : 'Crear juego'}
             </button>
           </div>

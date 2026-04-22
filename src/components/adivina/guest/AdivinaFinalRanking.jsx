@@ -21,14 +21,14 @@ export default function AdivinaFinalRanking({ player, adivinaEvent }) {
   const myPosition = players.findIndex(p => p.id === player.id) + 1
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 flex flex-col p-5">
+    <div className="min-h-screen bg-gradient-to-b from-[#1a1040] via-[#1e1355] to-[#160e35] flex flex-col p-5">
       <div className="text-center space-y-2 py-6">
         <div className="text-4xl">🏁</div>
         <h1 className="text-2xl font-bold text-white">Ranking final</h1>
         {myPosition > 0 && (
-          <p className="text-gray-400 text-sm">
+          <p className="text-white/40 text-sm">
             Quedaste en el puesto <span className="text-white font-bold">#{myPosition}</span> con{' '}
-            <span className="text-rose-400 font-bold">{player.total_score?.toLocaleString() ?? 0} pts</span>
+            <span className="text-purple-300 font-bold">{player.total_score?.toLocaleString() ?? 0} pts</span>
           </p>
         )}
       </div>

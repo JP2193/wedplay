@@ -43,15 +43,12 @@ export default function AdivinaAdminSection() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-sm text-center space-y-6">
-        <div className="text-5xl">💍</div>
+        <img src="/img/adivina.png" alt="Adivina" className="w-20 h-20 object-contain mx-auto" />
         <div>
           <h1 className="text-2xl font-bold text-gray-800 mb-2">Adivina Quién</h1>
           <p className="text-gray-500 text-sm">Todavía no configuraste este juego para el evento.</p>
         </div>
-        <button
-          onClick={() => setShowCreate(true)}
-          className="btn-primary w-full"
-        >
+        <button onClick={() => setShowCreate(true)} className="btn-primary w-full">
           Crear Adivina Quién
         </button>
         <button onClick={() => navigate('/admin')} className="btn-ghost w-full text-sm">
@@ -62,6 +59,7 @@ export default function AdivinaAdminSection() {
       {showCreate && (
         <AdivinaCreateModal
           adminId={session.user.id}
+          eventName={room?.event_name}
           onClose={() => setShowCreate(false)}
           onCreated={handleCreated}
         />

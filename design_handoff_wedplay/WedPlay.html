@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<title>WedPlay · Diseños</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Unbounded:wght@600;700;800;900&family=Fraunces:ital,opsz,wght@0,9..144,600..900;1,9..144,600..900&family=Bricolage+Grotesque:opsz,wght@10..48,600..900&family=Caveat:wght@500..700&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+</style>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="tokens.jsx"></script>
+<script type="text/babel" src="primitives.jsx"></script>
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="dir-a.jsx"></script>
+<script type="text/babel" src="dir-b.jsx"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const TWEAKS = /*EDITMODE-BEGIN*/{
+  "mode": "light",
+  "logoFontA": "unbounded",
+  "logoFontB": "fraunces",
+  "lang": "rio",
+  "names": "Nacho & Flor",
+  "date": "22 · 11 · 2026",
+  "bingoName": "Bingo Humano",
+  "quizName": "Quiz",
+  "guessName": "Adivina Quién",
+  "wishesName": "Deseos",
+  "timelineName": "Timeline",
+  "photoName": "Foto Challenge",
+  "playlistName": "Playlist"
+}/*EDITMODE-END*/;
+
+function useTweaks() {
+  const [t, setT] = React.useState(TWEAKS);
+  const [panelOpen, setPanelOpen] = React.useState(false);
+  const [editMode, setEditMode] = React.useState(false);
+  React.useEffect(() => {
+    const onMsg = (e) => {
+      if (!e.data) return;
+      if (e.data.type === '__activate_edit_mode') { setEditMode(true); setPanelOpen(true); }
+      if (e.data.type === '__deactivate_edit_mode') { setEditMode(false); setPanelOpen(false); }
+    };
+    window.addEventListener('message', onMsg);
+    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+    return () => window.removeEventListener('message', onMsg);
+  }, []);
+  const set = (k, v) => {
+    setT((s) => {
+      const next = { ...s, [k]: v };
+      window.parent.postMessage({ type: '__edit_mode_set_keys', edits: { [k]: v } }, '*');
+      return next;
+    });
+  };
+  return { t, set, editMode, panelOpen, setPanelOpen };
+}
+
+function TweaksPanel({ t, set, open, setOpen }) {
+  if (!open) return null;
+  const row = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '6px 0', fontSize: 12 };
+  const chip = (active) => ({ padding: '5px 10px', borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: 'pointer', border: '1px solid ' + (active ? '#222' : '#ddd'), background: active ? '#222' : '#fff', color: active ? '#fff' : '#444' });
+  return (
+    <div style={{ position: 'fixed', bottom: 20, right: 20, width: 280, background: '#fff', borderRadius: 14, boxShadow: '0 20px 50px rgba(0,0,0,0.18)', padding: 14, zIndex: 1000, fontFamily: 'Plus Jakarta Sans, system-ui, sans-serif', border: '1px solid #e5e5e5' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+        <div style={{ fontWeight: 800, fontSize: 14 }}>Tweaks</div>
+        <button onClick={() => setOpen(false)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16, color: '#888' }}>×</button>
+      </div>
+      <div style={{ fontSize: 10, color: '#888', marginBottom: 10, letterSpacing: 0.3 }}>Ajustá WedPlay en vivo</div>
+
+      <div style={row}>
+        <span style={{ color: '#555', fontWeight: 600 }}>Modo</span>
+        <div style={{ display: 'flex', gap: 4 }}>
+          <div style={chip(t.mode === 'light')} onClick={() => set('mode', 'light')}>☀ Claro</div>
+          <div style={chip(t.mode === 'dark')} onClick={() => set('mode', 'dark')}>☾ Oscuro</div>
+        </div>
+      </div>
+      <div style={row}>
+        <span style={{ color: '#555', fontWeight: 600 }}>Idioma</span>
+        <div style={{ display: 'flex', gap: 4 }}>
+          <div style={chip(t.lang === 'rio')} onClick={() => set('lang', 'rio')}>Vos</div>
+          <div style={chip(t.lang === 'neutro')} onClick={() => set('lang', 'neutro')}>Tú</div>
+        </div>
+      </div>
+      <div style={{ borderTop: '1px solid #eee', margin: '10px -4px' }} />
+      <div style={{ ...row, display: 'block' }}>
+        <span style={{ color: '#555', fontWeight: 600 }}>Logo Dir A</span>
+        <div style={{ display: 'flex', gap: 4, marginTop: 6, flexWrap: 'wrap' }}>
+          {['unbounded', 'fraunces', 'redaction'].map((f) => (
+            <div key={f} style={chip(t.logoFontA === f)} onClick={() => set('logoFontA', f)}>{f}</div>
+          ))}
+        </div>
+      </div>
+      <div style={{ ...row, display: 'block', marginTop: 4 }}>
+        <span style={{ color: '#555', fontWeight: 600 }}>Logo Dir B</span>
+        <div style={{ display: 'flex', gap: 4, marginTop: 6, flexWrap: 'wrap' }}>
+          {['fraunces', 'unbounded', 'redaction'].map((f) => (
+            <div key={f} style={chip(t.logoFontB === f)} onClick={() => set('logoFontB', f)}>{f}</div>
+          ))}
+        </div>
+      </div>
+      <div style={{ borderTop: '1px solid #eee', margin: '10px -4px' }} />
+      <div style={{ ...row, display: 'block' }}>
+        <span style={{ color: '#555', fontWeight: 600 }}>Nombres</span>
+        <input value={t.names} onChange={(e) => set('names', e.target.value)} style={{ width: '100%', marginTop: 4, padding: '6px 8px', borderRadius: 6, border: '1px solid #ddd', fontSize: 12, fontFamily: 'inherit' }} />
+      </div>
+      <details style={{ marginTop: 8 }}>
+        <summary style={{ fontSize: 11, color: '#555', fontWeight: 700, cursor: 'pointer' }}>Nombres de juegos</summary>
+        {[['bingoName','Bingo'],['quizName','Quiz'],['guessName','Adivina'],['wishesName','Deseos'],['timelineName','Timeline'],['photoName','Foto'],['playlistName','Playlist']].map(([k,l]) => (
+          <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
+            <span style={{ fontSize: 10, color: '#888', width: 54 }}>{l}</span>
+            <input value={t[k]} onChange={(e) => set(k, e.target.value)} style={{ flex: 1, padding: '4px 6px', borderRadius: 5, border: '1px solid #ddd', fontSize: 11, fontFamily: 'inherit' }} />
+          </div>
+        ))}
+      </details>
+    </div>
+  );
+}
+
+function App() {
+  const { t, set, editMode, panelOpen, setPanelOpen } = useTweaks();
+  const lang = WP_I18N[t.lang] || WP_I18N.rio;
+
+  // Build a patched games token map so renamed games flow through
+  const games = React.useMemo(() => {
+    const clone = JSON.parse(JSON.stringify(WP_GAMES));
+    clone.bingo.name = t.bingoName;
+    clone.quiz.name = t.quizName;
+    clone.guess.name = t.guessName;
+    clone.wishes.name = t.wishesName;
+    clone.timeline.name = t.timelineName;
+    clone.photo.name = t.photoName;
+    clone.playlist.name = t.playlistName;
+    Object.assign(window, { WP_GAMES: clone });
+    return clone;
+  }, [t.bingoName, t.quizName, t.guessName, t.wishesName, t.timelineName, t.photoName, t.playlistName]);
+
+  const shared = { mode: t.mode, t: lang, names: t.names, date: t.date };
+  const aProps = { ...shared, logoFont: t.logoFontA };
+  const bProps = { ...shared, logoFont: t.logoFontB };
+
+  return (
+    <>
+      <DesignCanvas>
+        {/* Cover strip */}
+        <DCSection id="intro" title="WedPlay · Diseños" subtitle="Dos direcciones: A · Confetti Fiesta  ·  B · Retro Poster. Usá los Tweaks para cambiar modo, idioma, tipografías y nombres.">
+          <DCArtboard id="a-home" label="A · Home" width={320} height={640}>
+            <DirA_Home {...aProps} />
+          </DCArtboard>
+          <DCArtboard id="b-home" label="B · Home" width={320} height={640}>
+            <DirB_Home {...bProps} />
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="a-flow" title="Dirección A · Confetti Fiesta" subtitle="Home, login de invitados (QR), login admin (novios), tres juegos, panel TV.">
+          <DCArtboard id="a-home-2" label="Home" width={320} height={640}>
+            <DirA_Home {...aProps} />
+          </DCArtboard>
+          <DCArtboard id="a-guest" label="Login · Invitado" width={320} height={640}>
+            <DirA_GuestLogin {...aProps} />
+          </DCArtboard>
+          <DCArtboard id="a-admin" label="Login · Novios" width={320} height={640}>
+            <DirA_AdminLogin {...aProps} />
+          </DCArtboard>
+          <DCArtboard id="a-bingo" label="Bingo Humano" width={320} height={640}>
+            <DirA_Bingo {...aProps} />
+          </DCArtboard>
+          <DCArtboard id="a-quiz" label="Quiz" width={320} height={640}>
+            <DirA_Quiz {...aProps} />
+          </DCArtboard>
+          <DCArtboard id="a-tv" label="Admin TV · en vivo" width={800} height={500}>
+            <DirA_AdminTV {...aProps} />
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="b-flow" title="Dirección B · Retro Poster" subtitle="Serif editorial, grid a-la-afiche, alto contraste. Misma funcionalidad, otra personalidad.">
+          <DCArtboard id="b-home-2" label="Home" width={320} height={640}>
+            <DirB_Home {...bProps} />
+          </DCArtboard>
+          <DCArtboard id="b-guest" label="Login · Invitado" width={320} height={640}>
+            <DirB_GuestLogin {...bProps} />
+          </DCArtboard>
+          <DCArtboard id="b-admin" label="Login · Novios" width={320} height={640}>
+            <DirB_AdminLogin {...bProps} />
+          </DCArtboard>
+          <DCArtboard id="b-guess" label="Adivina Quién" width={320} height={640}>
+            <DirB_GuessWho {...bProps} />
+          </DCArtboard>
+          <DCArtboard id="b-wishes" label="Deseos" width={320} height={640}>
+            <DirB_Wishes {...bProps} />
+          </DCArtboard>
+          <DCArtboard id="b-tv" label="Admin TV · panel novios" width={800} height={500}>
+            <DirB_AdminTV {...bProps} />
+          </DCArtboard>
+        </DCSection>
+      </DesignCanvas>
+
+      {editMode && <TweaksPanel t={t} set={set} open={panelOpen} setOpen={setPanelOpen} />}
+      {editMode && !panelOpen && (
+        <button onClick={() => setPanelOpen(true)} style={{ position: 'fixed', bottom: 20, right: 20, padding: '10px 14px', borderRadius: 999, background: '#222', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 12, boxShadow: '0 8px 20px rgba(0,0,0,0.25)' }}>Tweaks</button>
+      )}
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

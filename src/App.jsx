@@ -17,6 +17,7 @@ import AdivinaRoomGuestPage from './pages/AdivinaRoomGuestPage'
 import DeseosGuestPage from './pages/DeseosGuestPage'
 import TimelineGuestPage from './pages/TimelineGuestPage'
 import QuizDisplayPage from './pages/QuizDisplayPage'
+import AdivinaDisplayPage from './pages/AdivinaDisplayPage'
 
 export default function App() {
   return (
@@ -44,6 +45,7 @@ export default function App() {
         <Route path="/:code/quiz" element={<QuizRoomGuestPage />} />
         <Route path="/:code/quiz/display" element={<QuizDisplayPage />} />
         <Route path="/:code/adivina" element={<AdivinaRoomGuestPage />} />
+        <Route path="/:code/adivina/display" element={<AdivinaDisplayPage />} />
         <Route path="/:code/deseos" element={<DeseosGuestPage />} />
         <Route path="/:code/timeline" element={<TimelineGuestPage />} />
       </Routes>
