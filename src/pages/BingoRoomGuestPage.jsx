@@ -3,10 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { getRoomByCode, getGuestName } from '../lib/rooms'
 import GameScreen from '../components/guest/GameScreen'
-import ThankYouScreen from '../components/guest/ThankYouScreen'
 
 const TOKEN_KEY = (eventId, fullName) => `bingo-token-${eventId}-${fullName}`
-const RULES_SEEN_KEY = (code) => `bingo-rules-seen-${code}`
 
 function getOrCreateToken(eventId, fullName) {
   const key = TOKEN_KEY(eventId, fullName)
@@ -15,14 +13,6 @@ function getOrCreateToken(eventId, fullName) {
   const token = crypto.randomUUID()
   localStorage.setItem(key, token)
   return token
-}
-
-function hasSeenRules(code) {
-  return !!localStorage.getItem(RULES_SEEN_KEY(code))
-}
-
-function markRulesSeen(code) {
-  localStorage.setItem(RULES_SEEN_KEY(code), '1')
 }
 
 function shuffle(arr) {
@@ -35,18 +25,16 @@ function shuffle(arr) {
 }
 
 /* ─── Modal de reglas ─────────────────────────────────── */
-function RulesModal({ onStart, onBack }) {
+function RulesModal({ onStart, onBack, starting }) {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-4">
       <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden">
-        {/* Header */}
         <div className="bg-gradient-to-r from-rose-500 to-amber-400 px-6 pt-6 pb-5 text-center">
           <img src="/img/bingoh.png" alt="Bingo" className="w-14 h-14 object-contain mx-auto mb-3" />
           <h2 className="text-xl font-black text-white">Bingo Humano</h2>
           <p className="text-white/80 text-sm mt-1">¿Cómo se juega?</p>
         </div>
 
-        {/* Reglas */}
         <div className="px-6 py-5 space-y-3">
           {[
             { icon: '🔍', text: 'Encontrá al invitado que cumple con cada consigna y completá su nombre.' },
@@ -62,18 +50,11 @@ function RulesModal({ onStart, onBack }) {
           ))}
         </div>
 
-        {/* Botones */}
         <div className="px-6 pb-6 space-y-2">
-          <button
-            onClick={onStart}
-            className="btn-primary w-full"
-          >
-            ¡Comenzar juego!
+          <button onClick={onStart} disabled={starting} className="btn-primary w-full">
+            {starting ? 'Iniciando...' : '¡Comenzar juego!'}
           </button>
-          <button
-            onClick={onBack}
-            className="btn-ghost w-full text-sm"
-          >
+          <button onClick={onBack} disabled={starting} className="btn-ghost w-full text-sm">
             Volver al lobby
           </button>
         </div>
@@ -82,7 +63,7 @@ function RulesModal({ onStart, onBack }) {
   )
 }
 
-/* ─── Pantalla de re-entrada (ya cantó bingo) ─────────── */
+/* ─── Pantalla ya cantó bingo ─────────────────────────── */
 function AlreadyFinishedScreen({ onBack }) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-amber-50 flex items-center justify-center p-6">
@@ -106,25 +87,24 @@ function AlreadyFinishedScreen({ onBack }) {
 export default function BingoRoomGuestPage() {
   const { code } = useParams()
   const navigate = useNavigate()
+
+  const [phase, setPhase] = useState('loading') // loading | rules | game | finished | error
   const [player, setPlayer] = useState(null)
   const [questions, setQuestions] = useState([])
-  const [finished, setFinished] = useState(false)
-  const [showRules, setShowRules] = useState(false)
-  const [ready, setReady] = useState(false)   // true = pasó las reglas, mostrar juego
   const [error, setError] = useState(null)
-  const [loading, setLoading] = useState(true)
+
+  // Datos preparados para insertar al confirmar inicio
+  const [pendingInsert, setPendingInsert] = useState(null)
 
   useEffect(() => {
     initGame()
   }, [code])
 
   async function initGame() {
-    setLoading(true)
+    setPhase('loading')
+
     const guestName = getGuestName(code)
-    if (!guestName) {
-      navigate(`/${code}`, { replace: true })
-      return
-    }
+    if (!guestName) { navigate(`/${code}`, { replace: true }); return }
 
     const room = await getRoomByCode(code)
     if (!room) { navigate('/', { replace: true }); return }
@@ -137,12 +117,13 @@ export default function BingoRoomGuestPage() {
 
     if (!event) {
       setError('El Bingo Humano todavía no está configurado. Volvé más tarde.')
-      setLoading(false)
+      setPhase('error')
       return
     }
 
     const sessionToken = getOrCreateToken(event.id, guestName)
 
+    // ¿Ya existe el player?
     const { data: existingPlayer } = await supabase
       .from('players')
       .select('*')
@@ -152,11 +133,11 @@ export default function BingoRoomGuestPage() {
 
     if (existingPlayer) {
       if (existingPlayer.finished) {
-        setPlayer(existingPlayer)
-        setFinished(true)
-        setLoading(false)
+        setPhase('finished')
         return
       }
+
+      // Tiene cartón en curso → entrar directo sin modal
       const { data: qs } = await supabase
         .from('questions')
         .select('*')
@@ -168,14 +149,11 @@ export default function BingoRoomGuestPage() {
 
       setPlayer({ ...existingPlayer, _sessionToken: sessionToken })
       setQuestions(ordered)
-      setLoading(false)
-
-      // Ya jugó antes (tiene cartón en curso): saltar reglas
-      setReady(true)
+      setPhase('game')
       return
     }
 
-    // Jugador nuevo: cargar preguntas pero mostrar reglas primero
+    // Jugador nuevo: preparar datos pero NO insertar todavía
     const { data: allQuestions } = await supabase
       .from('questions')
       .select('*')
@@ -183,7 +161,7 @@ export default function BingoRoomGuestPage() {
 
     if (!allQuestions || allQuestions.length === 0) {
       setError('El Bingo no tiene preguntas configuradas todavía.')
-      setLoading(false)
+      setPhase('error')
       return
     }
 
@@ -195,6 +173,14 @@ export default function BingoRoomGuestPage() {
     } else {
       selectedQuestions = shuffle(allQuestions).slice(0, event.questions_per_player || 10)
     }
+
+    setPendingInsert({ event, guestName, sessionToken, selectedQuestions })
+    setPhase('rules')
+  }
+
+  async function handleStartGame() {
+    if (!pendingInsert) return
+    const { event, guestName, sessionToken, selectedQuestions } = pendingInsert
 
     const assignedIds = selectedQuestions.map(q => q.id)
 
@@ -212,31 +198,19 @@ export default function BingoRoomGuestPage() {
 
     if (insertError) {
       setError('Error al unirte al juego. Intentá de nuevo.')
-      setLoading(false)
+      setPhase('error')
       return
     }
 
     setPlayer({ ...newPlayer, _sessionToken: sessionToken })
     setQuestions(selectedQuestions)
-    setLoading(false)
-
-    // Primera vez: mostrar modal de reglas
-    if (!hasSeenRules(code)) {
-      setShowRules(true)
-    } else {
-      setReady(true)
-    }
-  }
-
-  function handleStartGame() {
-    markRulesSeen(code)
-    setShowRules(false)
-    setReady(true)
+    setPendingInsert(null)
+    setPhase('game')
   }
 
   // ── Renders ──
 
-  if (loading) {
+  if (phase === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-rose-50">
         <div className="text-rose-400 text-sm">Cargando...</div>
@@ -244,7 +218,7 @@ export default function BingoRoomGuestPage() {
     )
   }
 
-  if (error) {
+  if (phase === 'error') {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-rose-50 p-6 text-center gap-4">
         <div className="text-5xl">😕</div>
@@ -256,16 +230,13 @@ export default function BingoRoomGuestPage() {
     )
   }
 
-  // Ya cantó bingo en una sesión anterior → pantalla simple
-  if (finished) {
+  if (phase === 'finished') {
     return <AlreadyFinishedScreen onBack={() => navigate(`/${code}`)} />
   }
 
-  // Modal de reglas (primera vez, antes de empezar)
-  if (showRules) {
+  if (phase === 'rules') {
     return (
       <>
-        {/* Fondo semitransparente debajo del modal */}
         <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-amber-50" />
         <RulesModal
           onStart={handleStartGame}
@@ -275,13 +246,15 @@ export default function BingoRoomGuestPage() {
     )
   }
 
-  if (!ready || !player) return null
+  if (phase === 'game' && player) {
+    return (
+      <GameScreen
+        player={player}
+        questions={questions}
+        onFinished={() => setPhase('finished')}
+      />
+    )
+  }
 
-  return (
-    <GameScreen
-      player={player}
-      questions={questions}
-      onFinished={() => setFinished(true)}
-    />
-  )
+  return null
 }
