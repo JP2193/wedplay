@@ -1,12 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../../lib/supabase'
 
-const OPTIONS = [
-  { key: 'A', color: 'from-indigo-500 to-indigo-600', barColor: 'bg-indigo-500' },
-  { key: 'B', color: 'from-amber-400 to-amber-500',   barColor: 'bg-amber-400'  },
-  { key: 'C', color: 'from-rose-500 to-rose-600',     barColor: 'bg-rose-500'   },
-  { key: 'D', color: 'from-emerald-500 to-emerald-600', barColor: 'bg-emerald-500' },
-]
+const OPTIONS = ['A', 'B', 'C', 'D']
 
 export default function QuizRankingWait({ player, lastResult, question, isLastQuestion }) {
   const [voteCounts, setVoteCounts] = useState(null)
@@ -82,7 +77,7 @@ export default function QuizRankingWait({ player, lastResult, question, isLastQu
         {question && (
           <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-3">
             <p className="text-white/40 text-[0.65rem] font-bold uppercase tracking-widest text-center">Respuestas del grupo</p>
-            {OPTIONS.map(({ key, color, barColor }) => {
+            {OPTIONS.map(key => {
               const optText = question[`option_${key.toLowerCase()}`]
               if (!optText) return null
               const count = voteCounts?.[key] ?? 0
@@ -92,8 +87,8 @@ export default function QuizRankingWait({ player, lastResult, question, isLastQu
               return (
                 <div key={key} className="space-y-1.5">
                   <div className="flex items-center gap-2.5">
-                    <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black text-white shrink-0 bg-gradient-to-br
-                      ${isCorrectOpt ? 'from-emerald-500 to-emerald-600' : color}`}>
+                    <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black text-white shrink-0
+                      ${isCorrectOpt ? 'bg-emerald-500' : 'bg-red-500/60'}`}>
                       {key}
                     </span>
                     <span className={`flex-1 text-sm truncate font-medium ${isCorrectOpt ? 'text-white' : 'text-white/50'}`}>
@@ -106,7 +101,7 @@ export default function QuizRankingWait({ player, lastResult, question, isLastQu
                   <div className="h-2 bg-white/10 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all duration-700 ease-out
-                        ${isCorrectOpt ? 'bg-emerald-500' : barColor} opacity-70`}
+                        ${isCorrectOpt ? 'bg-emerald-500' : 'bg-red-500/50'}`}
                       style={{ width: animating ? `${pct}%` : '0%' }}
                     />
                   </div>
