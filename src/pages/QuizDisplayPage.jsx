@@ -3,8 +3,54 @@ import { useParams } from 'react-router-dom'
 import QRCode from 'react-qr-code'
 import { supabase } from '../lib/supabase'
 import { getRoomByCode } from '../lib/rooms'
-import QuizCountdown from '../components/quiz/shared/QuizCountdown'
 import QuizRankingTable from '../components/quiz/shared/QuizRankingTable'
+
+/* ─── DisplayTimer ──────────────────────────────────────── */
+function DisplayTimer({ totalSeconds, startedAt }) {
+  const [remaining, setRemaining] = useState(totalSeconds)
+
+  useEffect(() => {
+    function tick() {
+      const elapsed = (Date.now() - new Date(startedAt).getTime()) / 1000
+      const left = Math.min(totalSeconds, Math.max(0, totalSeconds - elapsed))
+      setRemaining(left)
+    }
+    tick()
+    const interval = setInterval(tick, 100)
+    return () => clearInterval(interval)
+  }, [startedAt, totalSeconds])
+
+  const pct = remaining / totalSeconds
+  const size = 180
+  const radius = 78
+  const circ = 2 * Math.PI * radius
+  const dash = circ * pct
+  const color = pct > 0.5 ? '#34d399' : pct > 0.25 ? '#fbbf24' : '#f87171'
+  const secs = Math.ceil(remaining)
+
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="rotate-[-90deg]">
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#ffffff15" strokeWidth="8" />
+        <circle
+          cx={size / 2} cy={size / 2} r={radius}
+          fill="none"
+          stroke={color}
+          strokeWidth="8"
+          strokeLinecap="round"
+          strokeDasharray={`${dash} ${circ}`}
+          style={{ transition: 'stroke-dasharray 0.1s linear, stroke 0.3s' }}
+        />
+      </svg>
+      <span
+        className="absolute inset-0 flex items-center justify-center font-black tabular-nums"
+        style={{ fontSize: secs >= 10 ? '3.5rem' : '4rem', color }}
+      >
+        {secs}
+      </span>
+    </div>
+  )
+}
 
 const OPTION_COLORS = {
   A: 'bg-indigo-500 hover:bg-indigo-500',
@@ -93,20 +139,26 @@ function QuestionDisplay({ quizEvent, question, questionNumber, totalQuestions }
 
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col">
-      {/* Top bar: timer + question number */}
-      <div className="flex items-center justify-between px-10 py-6">
-        <div className="text-white/60 text-xl font-bold">
-          Pregunta {questionNumber} <span className="text-white/30">/ {totalQuestions}</span>
-        </div>
-        <QuizCountdown
-          totalSeconds={quizEvent.timer_seconds}
-          startedAt={quizEvent.question_started_at}
-        />
+      {/* Question number */}
+      <div className="text-center pt-8 pb-2">
+        <span className="text-white/40 text-lg font-semibold tracking-wide">
+          Pregunta {questionNumber} <span className="text-white/20">/ {totalQuestions}</span>
+        </span>
+      </div>
+
+      {/* Timer — centrado y grande */}
+      <div className="flex justify-center py-4">
+        {quizEvent.question_started_at && (
+          <DisplayTimer
+            totalSeconds={quizEvent.timer_seconds}
+            startedAt={quizEvent.question_started_at}
+          />
+        )}
       </div>
 
       {/* Question text */}
-      <div className="flex-1 flex items-center justify-center px-12 py-6">
-        <h2 className="text-white text-4xl font-bold text-center leading-snug max-w-4xl">
+      <div className="flex-1 flex items-center justify-center px-16 py-4">
+        <h2 className="text-white text-5xl font-bold text-center leading-tight max-w-5xl">
           {question.text}
         </h2>
       </div>
