@@ -25,7 +25,7 @@ export default function QuizCountdown({ totalSeconds, startedAt, onExpire }) {
   return (
     <div className="relative w-[72px] h-[72px]">
       <svg width="72" height="72" className="rotate-[-90deg]">
-        <circle cx="36" cy="36" r={radius} fill="none" stroke="#e5e7eb" strokeWidth="5" />
+        <circle cx="36" cy="36" r={radius} fill="none" stroke="#ffffff20" strokeWidth="5" />
         <circle
           cx="36" cy="36" r={radius}
           fill="none"
@@ -36,7 +36,7 @@ export default function QuizCountdown({ totalSeconds, startedAt, onExpire }) {
           style={{ transition: 'stroke-dasharray 0.1s linear, stroke 0.3s' }}
         />
       </svg>
-      <span className="absolute inset-0 flex items-center justify-center text-2xl font-bold tabular-nums text-gray-700">
+      <span className="absolute inset-0 flex items-center justify-center text-2xl font-bold tabular-nums text-white">
         {Math.ceil(remaining)}
       </span>
     </div>

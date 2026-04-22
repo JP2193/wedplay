@@ -1,22 +1,24 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../../lib/supabase'
 
-const OPTION_COLORS = {
-  A: 'bg-indigo-500',
-  B: 'bg-amber-500',
-  C: 'bg-rose-500',
-  D: 'bg-emerald-500',
-}
+const OPTIONS = [
+  { key: 'A', color: 'from-indigo-500 to-indigo-600', barColor: 'bg-indigo-500' },
+  { key: 'B', color: 'from-amber-400 to-amber-500',   barColor: 'bg-amber-400'  },
+  { key: 'C', color: 'from-rose-500 to-rose-600',     barColor: 'bg-rose-500'   },
+  { key: 'D', color: 'from-emerald-500 to-emerald-600', barColor: 'bg-emerald-500' },
+]
 
 export default function QuizRankingWait({ player, lastResult, question, isLastQuestion }) {
   const [voteCounts, setVoteCounts] = useState(null)
+  const [animating, setAnimating] = useState(false)
 
   const didAnswer = lastResult !== null
   const isCorrect = lastResult?.is_correct
   const correctOption = lastResult?.correct_option
 
-  const correctOptionKey = correctOption ? `option_${correctOption.toLowerCase()}` : null
-  const correctText = correctOptionKey && question ? question[correctOptionKey] : null
+  const correctText = correctOption && question
+    ? question[`option_${correctOption.toLowerCase()}`]
+    : null
 
   useEffect(() => {
     if (!question) return
@@ -29,64 +31,83 @@ export default function QuizRankingWait({ player, lastResult, question, isLastQu
         const counts = { A: 0, B: 0, C: 0, D: 0 }
         data.forEach(r => { if (counts[r.selected_option] !== undefined) counts[r.selected_option]++ })
         setVoteCounts(counts)
+        // Trigger bar animation after a short delay
+        setTimeout(() => setAnimating(true), 100)
       })
   }, [question?.id])
 
   const total = voteCounts ? Object.values(voteCounts).reduce((a, b) => a + b, 0) : 0
 
-  const icon = !didAnswer ? '⏰' : isCorrect ? '✅' : '❌'
-  const verdict = !didAnswer
-    ? 'No respondiste a tiempo'
-    : isCorrect
-      ? '¡Acertaste!'
-      : 'Incorrecto'
-  const verdictColor = isCorrect ? 'text-emerald-400' : !didAnswer ? 'text-gray-300' : 'text-red-400'
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 flex items-center justify-center p-6">
-      <div className="text-center space-y-5 max-w-sm w-full">
+    <div className="min-h-screen bg-gradient-to-b from-[#1a1040] via-[#1e1355] to-[#160e35] flex flex-col items-center justify-center p-6">
+      <div className="w-full max-w-sm space-y-5">
 
-        {/* Verdict */}
-        <div className="text-5xl">{icon}</div>
-        <p className={`text-2xl font-bold ${verdictColor}`}>{verdict}</p>
+        {/* Verdict badge */}
+        <div className="text-center space-y-2">
+          {didAnswer ? (
+            <>
+              <div className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm
+                ${isCorrect
+                  ? 'bg-emerald-500/20 border border-emerald-400/50 text-emerald-300'
+                  : 'bg-red-500/20 border border-red-400/50 text-red-300'
+                }`}>
+                <span className="text-lg">{isCorrect ? '✅' : '❌'}</span>
+                {isCorrect ? '¡Acertaste!' : 'Incorrecto'}
+              </div>
+            </>
+          ) : (
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm bg-white/10 border border-white/20 text-white/60">
+              <span className="text-lg">⏰</span>
+              No respondiste a tiempo
+            </div>
+          )}
+        </div>
 
-        {/* Correct answer */}
+        {/* Correct answer highlight */}
         {correctText && (
-          <div className="bg-white/10 rounded-2xl px-5 py-3 space-y-1">
-            <p className="text-gray-400 text-xs uppercase tracking-widest">Respuesta correcta</p>
-            <p className="text-white font-semibold text-base">{correctText}</p>
+          <div className="bg-emerald-500/15 border border-emerald-400/30 rounded-2xl px-5 py-3.5 flex items-start gap-3">
+            <div className="w-7 h-7 bg-emerald-500 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-emerald-400 text-[0.7rem] font-bold uppercase tracking-widest">Respuesta correcta</p>
+              <p className="text-white font-semibold text-base mt-0.5">{correctText}</p>
+            </div>
           </div>
         )}
 
         {/* Vote breakdown */}
         {question && (
-          <div className="space-y-2 text-left">
-            {['A', 'B', 'C', 'D'].map(opt => {
-              const optText = question[`option_${opt.toLowerCase()}`]
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-3">
+            <p className="text-white/40 text-[0.65rem] font-bold uppercase tracking-widest text-center">Respuestas del grupo</p>
+            {OPTIONS.map(({ key, color, barColor }) => {
+              const optText = question[`option_${key.toLowerCase()}`]
               if (!optText) return null
-              const count = voteCounts?.[opt] ?? 0
+              const count = voteCounts?.[key] ?? 0
               const pct = total > 0 ? Math.round((count / total) * 100) : 0
-              const isCorrectOpt = opt === correctOption
+              const isCorrectOpt = key === correctOption
 
               return (
-                <div key={opt} className="space-y-1">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold text-white shrink-0 ${isCorrectOpt ? 'bg-emerald-500' : 'bg-white/20'}`}>
-                        {opt}
-                      </span>
-                      <span className={`text-sm truncate ${isCorrectOpt ? 'text-white font-semibold' : 'text-gray-400'}`}>
-                        {optText}
-                      </span>
-                    </div>
-                    <span className={`text-sm font-bold shrink-0 ${isCorrectOpt ? 'text-emerald-400' : 'text-gray-500'}`}>
+                <div key={key} className="space-y-1.5">
+                  <div className="flex items-center gap-2.5">
+                    <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black text-white shrink-0 bg-gradient-to-br
+                      ${isCorrectOpt ? 'from-emerald-500 to-emerald-600' : color}`}>
+                      {key}
+                    </span>
+                    <span className={`flex-1 text-sm truncate font-medium ${isCorrectOpt ? 'text-white' : 'text-white/50'}`}>
+                      {optText}
+                    </span>
+                    <span className={`text-sm font-bold tabular-nums ${isCorrectOpt ? 'text-emerald-400' : 'text-white/30'}`}>
                       {pct}%
                     </span>
                   </div>
                   <div className="h-2 bg-white/10 rounded-full overflow-hidden">
                     <div
-                      className={`h-full rounded-full transition-all duration-500 ${isCorrectOpt ? 'bg-emerald-500' : OPTION_COLORS[opt]} opacity-70`}
-                      style={{ width: `${pct}%` }}
+                      className={`h-full rounded-full transition-all duration-700 ease-out
+                        ${isCorrectOpt ? 'bg-emerald-500' : barColor} opacity-70`}
+                      style={{ width: animating ? `${pct}%` : '0%' }}
                     />
                   </div>
                 </div>
@@ -96,15 +117,25 @@ export default function QuizRankingWait({ player, lastResult, question, isLastQu
         )}
 
         {/* Score + waiting */}
-        <div className="border-t border-white/10 pt-4 space-y-1">
-          <p className="text-gray-500 text-sm">
-            Puntaje:{' '}
-            <span className="text-white font-bold">{player.total_score?.toLocaleString() ?? 0} pts</span>
-          </p>
-          <p className="text-gray-400 text-xs animate-pulse">
-            {isLastQuestion ? 'Esperando resultados finales...' : 'Esperá la siguiente pregunta...'}
+        <div className="text-center space-y-2 pt-1">
+          <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-2xl px-5 py-3">
+            <span className="text-white/50 text-sm">Puntaje</span>
+            <span className="text-white font-black text-xl tabular-nums">
+              {player.total_score?.toLocaleString() ?? 0}
+            </span>
+            <span className="text-white/40 text-xs">pts</span>
+          </div>
+          <p className="text-white/30 text-xs animate-pulse tracking-wide">
+            {isLastQuestion ? 'Calculando resultados finales...' : 'Esperá la siguiente pregunta...'}
           </p>
         </div>
+      </div>
+
+      {/* Decorative dots */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden -z-10">
+        <div className="absolute top-10 right-8 w-1 h-1 bg-white/30 rounded-full" />
+        <div className="absolute top-24 left-12 w-1.5 h-1.5 bg-purple-300/30 rounded-full" />
+        <div className="absolute bottom-20 right-6 w-1.5 h-1.5 bg-purple-200/20 rounded-full" />
       </div>
     </div>
   )
