@@ -145,6 +145,36 @@ function DeleteModal({ onConfirm, onClose, loading }) {
   )
 }
 
+/* ─── StopGameModal ──────────────────────────────────── */
+function StopGameModal({ onClose, onConfirm, stopping }) {
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl w-full max-w-sm p-6 space-y-4 shadow-xl text-center">
+        <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto">
+          <svg className="w-6 h-6 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+          </svg>
+        </div>
+        <h2 className="text-lg font-semibold text-gray-800">¿Detener el juego?</h2>
+        <p className="text-sm text-gray-500 leading-relaxed">
+          El juego está en curso. Si salís ahora se reiniciará y se perderán los puntajes de esta partida.
+        </p>
+        <div className="flex gap-3 pt-1">
+          <button type="button" onClick={onClose} disabled={stopping} className="btn-secondary flex-1">Cancelar</button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={stopping}
+            className="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-xl py-2.5 transition-colors disabled:opacity-60"
+          >
+            {stopping ? 'Deteniendo...' : 'Detener y salir'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /* ─── OptionsMenu ────────────────────────────────────── */
 function OptionsMenu({ onConfig, onDelete, disabled }) {
   const [open, setOpen] = useState(false)
@@ -210,6 +240,8 @@ export default function AdivinaEventAdmin() {
   const [showConfig, setShowConfig] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [showStopGame, setShowStopGame] = useState(false)
+  const [stopping, setStopping] = useState(false)
 
   useEffect(() => {
     fetchAll()
@@ -248,6 +280,12 @@ export default function AdivinaEventAdmin() {
     setLoading(false)
   }
 
+  async function handleStopAndExit() {
+    setStopping(true)
+    await supabase.rpc('reset_adivina_event', { p_adivina_event_id: eventId })
+    navigate('/admin')
+  }
+
   async function handleReset() {
     if (!window.confirm('¿Reiniciar el juego? Se borrarán todas las respuestas y puntajes.')) return
     await supabase.rpc('reset_adivina_event', { p_adivina_event_id: eventId })
@@ -273,7 +311,10 @@ export default function AdivinaEventAdmin() {
       <header className="bg-white border-b border-gray-100 px-4 py-4">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center justify-between mb-3">
-            <button onClick={() => navigate('/admin')} className="text-rose-400 text-sm hover:text-rose-500 flex items-center gap-1">← Panel</button>
+            <button
+              onClick={() => isLive ? setShowStopGame(true) : navigate('/admin')}
+              className="text-rose-400 text-sm hover:text-rose-500 flex items-center gap-1"
+            >← Panel</button>
             <OptionsMenu
               onConfig={() => setShowConfig(true)}
               onDelete={() => setShowDelete(true)}
@@ -360,6 +401,14 @@ export default function AdivinaEventAdmin() {
           onConfirm={handleDelete}
           onClose={() => setShowDelete(false)}
           loading={deleting}
+        />
+      )}
+
+      {showStopGame && (
+        <StopGameModal
+          onClose={() => setShowStopGame(false)}
+          onConfirm={handleStopAndExit}
+          stopping={stopping}
         />
       )}
     </div>
