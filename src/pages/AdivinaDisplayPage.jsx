@@ -231,7 +231,7 @@ function QuestionDisplay({ adivinaEvent, question, questionNumber, totalQuestion
 
   // ── Pregunta ─────────────────────────────────────────────────────────────
   return (
-    <div className={`min-h-screen ${BG} flex flex-col overflow-hidden`}>
+    <div className={`h-screen ${BG} flex flex-col overflow-hidden`}>
 
       {/* Glow ambiental */}
       <div className="pointer-events-none absolute inset-0">
@@ -239,14 +239,18 @@ function QuestionDisplay({ adivinaEvent, question, questionNumber, totalQuestion
         <div className="absolute bottom-0 right-1/4 w-[400px] h-[300px] bg-indigo-500/8 rounded-full blur-3xl translate-y-1/3" />
       </div>
 
-      {/* Top bar */}
-      <div className="relative flex items-center justify-between px-14 pt-10 pb-2">
+      {/* Top bar — badge izquierda */}
+      <div className="relative flex items-center px-14 pt-6">
         <div className="flex items-center gap-3 bg-white/6 border border-white/10 rounded-2xl px-5 py-2.5">
           <span className="text-white/35 text-sm font-bold tracking-widest uppercase">Pregunta</span>
           <span className="text-white text-xl font-black tabular-nums">{questionNumber}</span>
           <span className="text-white/15 text-base mx-0.5">/</span>
           <span className="text-white/35 text-base font-semibold">{totalQuestions}</span>
         </div>
+      </div>
+
+      {/* Timer centrado */}
+      <div className="relative flex justify-center pt-1">
         <DisplayTimer
           totalSeconds={adivinaEvent.timer_seconds}
           startedAt={startedAt}
@@ -255,22 +259,16 @@ function QuestionDisplay({ adivinaEvent, question, questionNumber, totalQuestion
       </div>
 
       {/* Pregunta */}
-      <div className="relative flex justify-center px-20 pt-6 pb-4">
-        <div className="bg-white/5 border border-white/8 rounded-3xl px-14 py-8 max-w-5xl w-full">
-          <h2 className="text-white text-5xl font-black text-center leading-tight">
-            {question.text}
-          </h2>
-        </div>
+      <div className="relative flex justify-center px-24 pt-3">
+        <h2 className="text-white text-5xl font-black text-center leading-tight max-w-5xl">
+          {question.text}
+        </h2>
       </div>
 
       {/* Fotos + VS */}
-      <div className="relative flex-1 flex items-center justify-center gap-16 px-16 pb-14">
+      <div className="relative flex-1 flex items-center justify-center gap-16 px-16 pb-8">
         <PersonCircle name={p1.name} photo={p1.photo} ringColor="border-rose-400/70" />
-
-        <div className="flex flex-col items-center gap-1 select-none">
-          <span className="text-white/10 font-black italic tracking-tighter" style={{ fontSize: '5rem', lineHeight: 1 }}>VS</span>
-        </div>
-
+        <span className="text-white/10 font-black italic tracking-tighter select-none" style={{ fontSize: '5rem', lineHeight: 1 }}>VS</span>
         <PersonCircle name={p2.name} photo={p2.photo} ringColor="border-indigo-400/70" />
       </div>
     </div>
@@ -394,14 +392,16 @@ export default function AdivinaDisplayPage() {
   )
   if (!adivinaEvent || !room) return null
 
+  const isPreview = new URLSearchParams(window.location.search).has('preview')
   const currentQuestion = questions[adivinaEvent.current_question_index]
+    ?? (isPreview ? { id: 'preview', text: '¿Quién cocina más en casa?', correct_person: 1, position: 0 } : null)
   const questionNumber = (adivinaEvent.current_question_index ?? 0) + 1
 
   let content = null
-  if (adivinaEvent.status === 'lobby') content = <LobbyDisplay room={room} adivinaEvent={adivinaEvent} players={players} />
-  else if (adivinaEvent.status === 'question') content = (
-    <QuestionDisplay adivinaEvent={adivinaEvent} question={currentQuestion} questionNumber={questionNumber} totalQuestions={questions.length} />
+  if (isPreview || adivinaEvent.status === 'question') content = (
+    <QuestionDisplay adivinaEvent={adivinaEvent} question={currentQuestion} questionNumber={questionNumber} totalQuestions={Math.max(questions.length, 1)} />
   )
+  else if (adivinaEvent.status === 'lobby') content = <LobbyDisplay room={room} adivinaEvent={adivinaEvent} players={players} />
   else if (adivinaEvent.status === 'ranking') content = (
     <RankingDisplay players={players} questionNumber={questionNumber} totalQuestions={questions.length} isFinished={false} />
   )
@@ -410,7 +410,7 @@ export default function AdivinaDisplayPage() {
   )
 
   return (
-    <div className="relative">
+    <div className="relative h-screen overflow-hidden">
       {content}
 
       {/* Botón de sonido — ícono circular, top-right */}
