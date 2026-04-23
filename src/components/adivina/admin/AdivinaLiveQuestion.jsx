@@ -17,6 +17,7 @@ function PersonPhoto({ photoUrl, name, colorClass }) {
 export default function AdivinaLiveQuestion({ adivinaEvent, question, totalPlayers, onTimeUp }) {
   const [answers, setAnswers] = useState([])
   const [expired, setExpired] = useState(false)
+  const [revealCountdown, setRevealCountdown] = useState(null) // 5..0 mientras espera revelar
   const expiredRef = useRef(false)
   const mountTimeRef = useRef(new Date().toISOString())
 
@@ -24,6 +25,7 @@ export default function AdivinaLiveQuestion({ adivinaEvent, question, totalPlaye
     mountTimeRef.current = new Date().toISOString()
     setAnswers([])
     setExpired(false)
+    setRevealCountdown(null)
     expiredRef.current = false
     fetchAnswers()
 
@@ -48,6 +50,18 @@ export default function AdivinaLiveQuestion({ adivinaEvent, question, totalPlaye
     if (expiredRef.current) return
     expiredRef.current = true
     setExpired(true)
+
+    // Esperar 5 segundos sincronizados con el countdown visual de display/mobile
+    let c = 5
+    setRevealCountdown(c)
+    await new Promise(resolve => {
+      const id = setInterval(() => {
+        c -= 1
+        setRevealCountdown(c)
+        if (c <= 0) { clearInterval(id); resolve() }
+      }, 1000)
+    })
+
     await supabase.rpc('advance_adivina_state', {
       p_adivina_event_id: adivinaEvent.id,
       p_new_status: 'ranking',
@@ -122,12 +136,20 @@ export default function AdivinaLiveQuestion({ adivinaEvent, question, totalPlaye
       </div>
 
       {!expired && (
-        <button
-          onClick={handleExpire}
-          className="btn-secondary w-full text-sm"
-        >
+        <button onClick={handleExpire} className="btn-secondary w-full text-sm">
           Cerrar pregunta ahora
         </button>
+      )}
+      {expired && revealCountdown !== null && revealCountdown > 0 && (
+        <div className="card text-center py-4 space-y-1">
+          <p className="text-xs text-gray-400 uppercase tracking-widest">Revelando en</p>
+          <p className="text-4xl font-black text-amber-500 tabular-nums">{revealCountdown}</p>
+        </div>
+      )}
+      {expired && revealCountdown === 0 && (
+        <div className="card text-center py-3">
+          <p className="text-sm font-semibold text-emerald-600">✓ Respuesta revelada</p>
+        </div>
       )}
     </div>
   )

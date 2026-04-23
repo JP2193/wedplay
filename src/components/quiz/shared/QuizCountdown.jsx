@@ -1,14 +1,19 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 export default function QuizCountdown({ totalSeconds, startedAt, onExpire }) {
   const [remaining, setRemaining] = useState(totalSeconds)
+  const firedRef = useRef(false)
 
   useEffect(() => {
+    firedRef.current = false
     function tick() {
       const elapsed = (Date.now() - new Date(startedAt).getTime()) / 1000
       const left = Math.min(totalSeconds, Math.max(0, totalSeconds - elapsed))
       setRemaining(left)
-      if (left <= 0) onExpire?.()
+      if (left <= 0 && !firedRef.current) {
+        firedRef.current = true
+        onExpire?.()
+      }
     }
 
     tick()
