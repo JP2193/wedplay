@@ -6,17 +6,14 @@ import { getRoomByCode } from '../lib/rooms'
 import QuizRankingTable from '../components/quiz/shared/QuizRankingTable'
 
 /* ─── Ping sound ─────────────────────────────────────── */
+// Solo se inicializa tras gesto del usuario (botón de sonido)
 let _audioCtx = null
 
-function getAudioCtx() {
-  if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)()
-  if (_audioCtx.state === 'suspended') _audioCtx.resume()
-  return _audioCtx
-}
-
 function playPing() {
+  // Si no hay contexto o está suspendido, no reproducir
+  if (!_audioCtx || _audioCtx.state !== 'running') return
   try {
-    const ctx = getAudioCtx()
+    const ctx = _audioCtx
     ;[880, 1100].forEach((freq, i) => {
       const osc = ctx.createOscillator()
       const gain = ctx.createGain()
@@ -279,20 +276,28 @@ export default function AdivinaDisplayPage() {
   const [players, setPlayers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [audioUnlocked, setAudioUnlocked] = useState(false)
+  const [audioOn, setAudioOn] = useState(false)
 
-  function handleUnlockAudio() {
-    try {
-      _audioCtx = new (window.AudioContext || window.webkitAudioContext)()
-      _audioCtx.resume()
-      // Play a silent blip to fully unlock the context
-      const osc = _audioCtx.createOscillator()
-      const gain = _audioCtx.createGain()
-      gain.gain.setValueAtTime(0, _audioCtx.currentTime)
-      osc.connect(gain); gain.connect(_audioCtx.destination)
-      osc.start(); osc.stop(_audioCtx.currentTime + 0.001)
-    } catch {}
-    setAudioUnlocked(true)
+  function toggleAudio() {
+    if (audioOn) {
+      _audioCtx?.suspend()
+      setAudioOn(false)
+    } else {
+      try {
+        if (!_audioCtx) {
+          _audioCtx = new (window.AudioContext || window.webkitAudioContext)()
+        }
+        _audioCtx.resume().then(() => {
+          // Blip silencioso para confirmar que el contexto está desbloqueado
+          const osc = _audioCtx.createOscillator()
+          const gain = _audioCtx.createGain()
+          gain.gain.setValueAtTime(0, _audioCtx.currentTime)
+          osc.connect(gain); gain.connect(_audioCtx.destination)
+          osc.start(); osc.stop(_audioCtx.currentTime + 0.001)
+        })
+      } catch {}
+      setAudioOn(true)
+    }
   }
 
   useEffect(() => { init() }, [code])
@@ -381,20 +386,28 @@ export default function AdivinaDisplayPage() {
   return (
     <div className="relative">
       {content}
-      {!audioUnlocked && (
-        <div
-          onClick={handleUnlockAudio}
-          className="fixed inset-0 z-50 flex items-end justify-center pb-10 cursor-pointer"
-          style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%)' }}
-        >
-          <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/20 text-white px-7 py-4 rounded-2xl shadow-2xl">
-            <svg className="w-6 h-6 text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072M17.95 6.05a8 8 0 010 11.9M11 5L6 9H3v6h3l5 4V5z" />
-            </svg>
-            <span className="font-semibold text-lg">Tocá para activar el sonido</span>
-          </div>
-        </div>
-      )}
+
+      {/* Botón de sonido — siempre visible en esquina superior derecha */}
+      <button
+        onClick={toggleAudio}
+        title={audioOn ? 'Silenciar' : 'Activar sonido'}
+        className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border backdrop-blur-md transition-all duration-200
+          ${audioOn
+            ? 'bg-emerald-500/20 border-emerald-400/40 text-emerald-300 hover:bg-emerald-500/30'
+            : 'bg-black/30 border-white/20 text-white/50 hover:bg-black/50 hover:text-white/70'}`}
+      >
+        {audioOn ? (
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072M17.95 6.05a8 8 0 010 11.9M11 5L6 9H3v6h3l5 4V5z" />
+          </svg>
+        ) : (
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+          </svg>
+        )}
+        {audioOn ? 'Sonido ON' : 'Sonido OFF'}
+      </button>
     </div>
   )
 }
