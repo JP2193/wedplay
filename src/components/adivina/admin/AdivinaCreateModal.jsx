@@ -1,6 +1,13 @@
 import { useState } from 'react'
 import { supabase } from '../../../lib/supabase'
 
+function generateCode(length = 6) {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+  let code = ''
+  for (let i = 0; i < length; i++) code += chars[Math.floor(Math.random() * chars.length)]
+  return code
+}
+
 function PhotoUpload({ label, preview, onChange }) {
   return (
     <div className="flex flex-col items-center gap-2">
@@ -56,6 +63,14 @@ export default function AdivinaCreateModal({ adminId, eventName, onClose, onCrea
     setError(null)
 
     try {
+      // Generar código único (requerido por DB, no se muestra al usuario)
+      let code = generateCode()
+      for (let i = 0; i < 5; i++) {
+        const { data: existing } = await supabase.from('adivina_events').select('id').eq('code', code).maybeSingle()
+        if (!existing) break
+        code = generateCode()
+      }
+
       let person1PhotoUrl = null
       let person2PhotoUrl = null
       if (person1File) person1PhotoUrl = await uploadPhoto(person1File, 'person1')
@@ -66,6 +81,7 @@ export default function AdivinaCreateModal({ adminId, eventName, onClose, onCrea
         .insert({
           admin_id: adminId,
           name: eventName || 'Adivina Quién',
+          code,
           timer_seconds: timer,
           person1_name: person1Name.trim(),
           person2_name: person2Name.trim(),
