@@ -6,9 +6,17 @@ import { getRoomByCode } from '../lib/rooms'
 import QuizRankingTable from '../components/quiz/shared/QuizRankingTable'
 
 /* ─── Ping sound ─────────────────────────────────────── */
+let _audioCtx = null
+
+function getAudioCtx() {
+  if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)()
+  if (_audioCtx.state === 'suspended') _audioCtx.resume()
+  return _audioCtx
+}
+
 function playPing() {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)()
+    const ctx = getAudioCtx()
     ;[880, 1100].forEach((freq, i) => {
       const osc = ctx.createOscillator()
       const gain = ctx.createGain()
@@ -136,7 +144,6 @@ function QuestionDisplay({ adivinaEvent, question, questionNumber, totalQuestion
   const pingFiredRef = useRef(false)
 
   useEffect(() => {
-    // Reset on new question
     setTimerExpired(false)
     setCountdown(null)
     setRevealed(false)
@@ -170,69 +177,74 @@ function QuestionDisplay({ adivinaEvent, question, questionNumber, totalQuestion
 
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col">
-      <div className="text-center pt-8 pb-2">
-        <span className="text-white/40 text-lg font-semibold">
+
+      {/* Top bar: pregunta + timer */}
+      <div className="flex items-center justify-between px-16 pt-10 pb-4">
+        <span className="text-white/40 text-2xl font-semibold">
           Pregunta {questionNumber} <span className="text-white/20">/ {totalQuestions}</span>
         </span>
-      </div>
 
-      {/* Timer o countdown */}
-      <div className="flex justify-center py-4">
+        {/* Timer / countdown / reveal badge */}
         {!timerExpired && adivinaEvent.question_started_at && (
-          <DisplayTimer totalSeconds={adivinaEvent.timer_seconds} startedAt={adivinaEvent.question_started_at} onExpire={handleTimerExpire} />
+          <DisplayTimer
+            totalSeconds={adivinaEvent.timer_seconds}
+            startedAt={adivinaEvent.question_started_at}
+            onExpire={handleTimerExpire}
+          />
         )}
         {timerExpired && !revealed && (
-          <div className="flex flex-col items-center gap-2">
-            <span className="text-amber-400 text-8xl font-black tabular-nums">{countdown}</span>
-            <span className="text-white/40 text-lg uppercase tracking-widest">revelando...</span>
+          <div className="flex flex-col items-center">
+            <span className="text-amber-400 text-7xl font-black tabular-nums leading-none">{countdown}</span>
+            <span className="text-white/40 text-sm uppercase tracking-widest mt-1">revelando</span>
           </div>
         )}
         {revealed && (
-          <div className="text-center">
-            <div className="inline-flex items-center gap-3 bg-emerald-500 px-8 py-4 rounded-3xl shadow-xl shadow-emerald-500/30">
-              <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-white/40">
-                {correct.photo ? <img src={correct.photo} alt={correct.name} className="w-full h-full object-cover" />
-                  : <div className="w-full h-full bg-white/20 flex items-center justify-center">
-                      <span className="text-xl font-black text-white">{correct.name[0]}</span>
-                    </div>}
-              </div>
-              <span className="text-white text-3xl font-black">{correct.name}</span>
-              <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-              </svg>
+          <div className="inline-flex items-center gap-3 bg-emerald-500 px-6 py-3 rounded-2xl shadow-xl shadow-emerald-500/30">
+            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white/40 shrink-0">
+              {correct.photo
+                ? <img src={correct.photo} alt={correct.name} className="w-full h-full object-cover" />
+                : <div className="w-full h-full bg-white/20 flex items-center justify-center">
+                    <span className="text-lg font-black text-white">{correct.name[0]}</span>
+                  </div>}
             </div>
+            <span className="text-white text-2xl font-black">{correct.name}</span>
+            <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+            </svg>
           </div>
         )}
       </div>
 
       {/* Pregunta */}
-      <div className="flex-1 flex items-center justify-center px-16 py-4">
+      <div className="flex items-center justify-center px-16 py-6">
         <h2 className="text-white text-5xl font-bold text-center leading-tight max-w-5xl">
           {question.text}
         </h2>
       </div>
 
-      {/* Fotos 2 columnas */}
-      <div className="grid grid-cols-2 gap-6 p-10 pt-0">
+      {/* Fotos — círculos grandes centrados */}
+      <div className="flex-1 flex items-center justify-center gap-24 px-16 pb-16">
         {[p1, p2].map(({ person, name, photo }) => {
           const isCorrect = revealed && question.correct_person === person
           const isWrong = revealed && question.correct_person !== person
           return (
-            <div key={person} className={`rounded-3xl overflow-hidden relative transition-all duration-500
-              ${isCorrect ? 'ring-4 ring-emerald-400 shadow-2xl shadow-emerald-500/30' : isWrong ? 'opacity-30' : ''}`}>
-              <div className="h-64 bg-white/5">
-                {photo ? <img src={photo} alt={name} className="w-full h-full object-cover" />
-                  : <div className="w-full h-full flex items-center justify-center">
-                      <span className="text-8xl font-black text-white/30">{name[0]}</span>
+            <div key={person} className={`flex flex-col items-center gap-6 transition-all duration-500 ${isWrong ? 'opacity-25' : ''}`}>
+              <div className={`w-52 h-52 rounded-full overflow-hidden border-4 transition-all duration-500
+                ${isCorrect
+                  ? 'border-emerald-400 shadow-2xl shadow-emerald-400/40 scale-110'
+                  : 'border-white/20'}`}>
+                {photo
+                  ? <img src={photo} alt={name} className="w-full h-full object-cover" />
+                  : <div className="w-full h-full bg-white/10 flex items-center justify-center">
+                      <span className="text-7xl font-black text-white/50">{name[0]}</span>
                     </div>}
               </div>
-              <div className={`px-6 py-4 flex items-center justify-between
-                ${isCorrect ? 'bg-emerald-500' : 'bg-white/10'}`}>
-                <span className="text-white text-2xl font-black">{name}</span>
+              <div className="text-center">
+                <p className={`text-3xl font-black transition-colors duration-300 ${isCorrect ? 'text-emerald-400' : 'text-white'}`}>
+                  {name}
+                </p>
                 {isCorrect && (
-                  <svg className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                  </svg>
+                  <p className="text-emerald-300 text-lg font-semibold mt-1">✓ Respuesta correcta</p>
                 )}
               </div>
             </div>
@@ -268,6 +280,21 @@ export default function AdivinaDisplayPage() {
   const [players, setPlayers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [audioUnlocked, setAudioUnlocked] = useState(false)
+
+  function handleUnlockAudio() {
+    try {
+      _audioCtx = new (window.AudioContext || window.webkitAudioContext)()
+      _audioCtx.resume()
+      // Play a silent blip to fully unlock the context
+      const osc = _audioCtx.createOscillator()
+      const gain = _audioCtx.createGain()
+      gain.gain.setValueAtTime(0, _audioCtx.currentTime)
+      osc.connect(gain); gain.connect(_audioCtx.destination)
+      osc.start(); osc.stop(_audioCtx.currentTime + 0.001)
+    } catch {}
+    setAudioUnlocked(true)
+  }
 
   useEffect(() => { init() }, [code])
 
@@ -340,15 +367,35 @@ export default function AdivinaDisplayPage() {
   const currentQuestion = questions[adivinaEvent.current_question_index]
   const questionNumber = (adivinaEvent.current_question_index ?? 0) + 1
 
-  if (adivinaEvent.status === 'lobby') return <LobbyDisplay room={room} adivinaEvent={adivinaEvent} players={players} />
-  if (adivinaEvent.status === 'question') return (
+  let content = null
+  if (adivinaEvent.status === 'lobby') content = <LobbyDisplay room={room} adivinaEvent={adivinaEvent} players={players} />
+  else if (adivinaEvent.status === 'question') content = (
     <QuestionDisplay adivinaEvent={adivinaEvent} question={currentQuestion} questionNumber={questionNumber} totalQuestions={questions.length} />
   )
-  if (adivinaEvent.status === 'ranking') return (
+  else if (adivinaEvent.status === 'ranking') content = (
     <RankingDisplay players={players} questionNumber={questionNumber} totalQuestions={questions.length} isFinished={false} />
   )
-  if (adivinaEvent.status === 'finished') return (
+  else if (adivinaEvent.status === 'finished') content = (
     <RankingDisplay players={players} questionNumber={questionNumber} totalQuestions={questions.length} isFinished={true} />
   )
-  return null
+
+  return (
+    <div className="relative">
+      {content}
+      {!audioUnlocked && (
+        <div
+          onClick={handleUnlockAudio}
+          className="fixed inset-0 z-50 flex items-end justify-center pb-10 cursor-pointer"
+          style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%)' }}
+        >
+          <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/20 text-white px-7 py-4 rounded-2xl shadow-2xl">
+            <svg className="w-6 h-6 text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072M17.95 6.05a8 8 0 010 11.9M11 5L6 9H3v6h3l5 4V5z" />
+            </svg>
+            <span className="font-semibold text-lg">Tocá para activar el sonido</span>
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
