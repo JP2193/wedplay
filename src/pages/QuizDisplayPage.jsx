@@ -128,17 +128,19 @@ function LobbyDisplay({ room, quizEvent, players }) {
 }
 
 /* ─── Question display ──────────────────────────────────── */
+const BG = 'bg-gradient-to-b from-[#0f0826] via-[#1a0f3d] to-[#0c0520]'
+
 function QuestionDisplay({ quizEvent, question, questionNumber, totalQuestions }) {
   if (!question) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <p className="text-gray-400 text-lg">Cargando pregunta...</p>
+      <div className={`min-h-screen ${BG} flex items-center justify-center`}>
+        <p className="text-white/30 text-lg">Cargando pregunta...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col">
+    <div className={`min-h-screen ${BG} flex flex-col`}>
       {/* Question number */}
       <div className="text-center pt-8 pb-2">
         <span className="text-white/40 text-lg font-semibold tracking-wide">
@@ -157,14 +159,14 @@ function QuestionDisplay({ quizEvent, question, questionNumber, totalQuestions }
       </div>
 
       {/* Question text */}
-      <div className="flex-1 flex items-center justify-center px-16 py-4">
+      <div className="flex-1 flex items-start justify-center px-16 pt-8">
         <h2 className="text-white text-5xl font-bold text-center leading-tight max-w-5xl">
           {question.text}
         </h2>
       </div>
 
       {/* Options 2x2 grid */}
-      <div className="grid grid-cols-2 gap-4 p-8 pt-0">
+      <div className="grid grid-cols-2 gap-4 p-8 pt-0 pb-6">
         {['A', 'B', 'C', 'D'].map(opt => {
           const val = question[`option_${opt.toLowerCase()}`]
           return (
@@ -304,8 +306,29 @@ export default function QuizDisplayPage() {
 
   if (!quizEvent || !room) return null
 
-  const currentQuestion = questions[quizEvent.current_question_index]
+  const isPreview = new URLSearchParams(window.location.search).has('preview')
+  const previewQuestion = {
+    id: 'preview', text: '¿En qué año se conocieron?', position: 0,
+    option_a: '2018', option_b: '2019', option_c: '2020', option_d: '2021',
+    correct_option: 'B',
+  }
+  const previewEvent = { ...quizEvent, question_started_at: new Date().toISOString() }
+
+  const currentQuestion = questions[quizEvent.current_question_index] ?? (isPreview ? previewQuestion : null)
   const questionNumber = (quizEvent.current_question_index ?? 0) + 1
+
+  if (isPreview) {
+    return (
+      <div className="h-screen overflow-hidden">
+        <QuestionDisplay
+          quizEvent={previewEvent}
+          question={currentQuestion}
+          questionNumber={questionNumber}
+          totalQuestions={Math.max(questions.length, 1)}
+        />
+      </div>
+    )
+  }
 
   if (quizEvent.status === 'lobby') {
     return <LobbyDisplay room={room} quizEvent={quizEvent} players={players} />
@@ -313,12 +336,14 @@ export default function QuizDisplayPage() {
 
   if (quizEvent.status === 'question') {
     return (
-      <QuestionDisplay
-        quizEvent={quizEvent}
-        question={currentQuestion}
-        questionNumber={questionNumber}
-        totalQuestions={questions.length}
-      />
+      <div className="h-screen overflow-hidden">
+        <QuestionDisplay
+          quizEvent={quizEvent}
+          question={currentQuestion}
+          questionNumber={questionNumber}
+          totalQuestions={questions.length}
+        />
+      </div>
     )
   }
 
