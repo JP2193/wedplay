@@ -140,19 +140,19 @@ function LobbyDisplay({ room, adivinaEvent, players }) {
 function QuestionDisplay({ adivinaEvent, question, questionNumber, totalQuestions }) {
   const [timerExpired, setTimerExpired] = useState(false)
   const [countdown, setCountdown] = useState(null)
-  const [revealed, setRevealed] = useState(false)
   const pingFiredRef = useRef(false)
+  const mountTimeRef = useRef(new Date().toISOString())
 
   useEffect(() => {
+    mountTimeRef.current = new Date().toISOString()
     setTimerExpired(false)
     setCountdown(null)
-    setRevealed(false)
     pingFiredRef.current = false
   }, [question?.id])
 
+  // Cuenta regresiva 5 → 0
   useEffect(() => {
-    if (countdown === null) return
-    if (countdown <= 0) { setRevealed(true); setCountdown(null); return }
+    if (countdown === null || countdown <= 0) return
     const t = setTimeout(() => setCountdown(c => c - 1), 1000)
     return () => clearTimeout(t)
   }, [countdown])
@@ -171,10 +171,48 @@ function QuestionDisplay({ adivinaEvent, question, questionNumber, totalQuestion
     </div>
   )
 
+  const startedAt = adivinaEvent.question_started_at || mountTimeRef.current
   const p1 = { person: 1, name: adivinaEvent.person1_name, photo: adivinaEvent.person1_photo_url }
   const p2 = { person: 2, name: adivinaEvent.person2_name, photo: adivinaEvent.person2_photo_url }
   const correct = question.correct_person === 1 ? p1 : p2
 
+  // ── Pantalla de cuenta regresiva (5-4-3-2-1) ────────────────────────────
+  if (timerExpired && countdown !== null && countdown > 0) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center gap-6">
+        <span className="text-white/30 text-3xl font-semibold uppercase tracking-widest">Revelando en</span>
+        <span className="text-amber-400 font-black tabular-nums leading-none" style={{ fontSize: '22rem' }}>
+          {countdown}
+        </span>
+      </div>
+    )
+  }
+
+  // ── Pantalla de reveal (countdown llegó a 0) ─────────────────────────────
+  if (timerExpired && countdown === 0) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center gap-10">
+        <span className="text-white/40 text-3xl font-semibold uppercase tracking-widest">La respuesta es</span>
+        <div className="w-80 h-80 rounded-full overflow-hidden border-8 border-emerald-400 shadow-[0_0_80px_20px_rgba(52,211,153,0.25)]">
+          {correct.photo
+            ? <img src={correct.photo} alt={correct.name} className="w-full h-full object-cover" />
+            : <div className="w-full h-full bg-white/10 flex items-center justify-center">
+                <span className="text-9xl font-black text-white/50">{correct.name[0]}</span>
+              </div>
+          }
+        </div>
+        <p className="text-white text-7xl font-black">{correct.name}</p>
+        <div className="flex items-center gap-3 bg-emerald-500/20 border border-emerald-400/40 px-8 py-3 rounded-2xl">
+          <svg className="w-7 h-7 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+          </svg>
+          <span className="text-emerald-300 text-2xl font-bold">Respuesta correcta</span>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Pantalla de pregunta (timer corriendo) ────────────────────────────────
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col">
 
@@ -183,36 +221,11 @@ function QuestionDisplay({ adivinaEvent, question, questionNumber, totalQuestion
         <span className="text-white/40 text-2xl font-semibold">
           Pregunta {questionNumber} <span className="text-white/20">/ {totalQuestions}</span>
         </span>
-
-        {/* Timer / countdown / reveal badge */}
-        {!timerExpired && adivinaEvent.question_started_at && (
-          <DisplayTimer
-            totalSeconds={adivinaEvent.timer_seconds}
-            startedAt={adivinaEvent.question_started_at}
-            onExpire={handleTimerExpire}
-          />
-        )}
-        {timerExpired && !revealed && (
-          <div className="flex flex-col items-center">
-            <span className="text-amber-400 text-7xl font-black tabular-nums leading-none">{countdown}</span>
-            <span className="text-white/40 text-sm uppercase tracking-widest mt-1">revelando</span>
-          </div>
-        )}
-        {revealed && (
-          <div className="inline-flex items-center gap-3 bg-emerald-500 px-6 py-3 rounded-2xl shadow-xl shadow-emerald-500/30">
-            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white/40 shrink-0">
-              {correct.photo
-                ? <img src={correct.photo} alt={correct.name} className="w-full h-full object-cover" />
-                : <div className="w-full h-full bg-white/20 flex items-center justify-center">
-                    <span className="text-lg font-black text-white">{correct.name[0]}</span>
-                  </div>}
-            </div>
-            <span className="text-white text-2xl font-black">{correct.name}</span>
-            <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-        )}
+        <DisplayTimer
+          totalSeconds={adivinaEvent.timer_seconds}
+          startedAt={startedAt}
+          onExpire={handleTimerExpire}
+        />
       </div>
 
       {/* Pregunta */}
@@ -224,32 +237,18 @@ function QuestionDisplay({ adivinaEvent, question, questionNumber, totalQuestion
 
       {/* Fotos — círculos grandes centrados */}
       <div className="flex-1 flex items-center justify-center gap-24 px-16 pb-16">
-        {[p1, p2].map(({ person, name, photo }) => {
-          const isCorrect = revealed && question.correct_person === person
-          const isWrong = revealed && question.correct_person !== person
-          return (
-            <div key={person} className={`flex flex-col items-center gap-6 transition-all duration-500 ${isWrong ? 'opacity-25' : ''}`}>
-              <div className={`w-52 h-52 rounded-full overflow-hidden border-4 transition-all duration-500
-                ${isCorrect
-                  ? 'border-emerald-400 shadow-2xl shadow-emerald-400/40 scale-110'
-                  : 'border-white/20'}`}>
-                {photo
-                  ? <img src={photo} alt={name} className="w-full h-full object-cover" />
-                  : <div className="w-full h-full bg-white/10 flex items-center justify-center">
-                      <span className="text-7xl font-black text-white/50">{name[0]}</span>
-                    </div>}
-              </div>
-              <div className="text-center">
-                <p className={`text-3xl font-black transition-colors duration-300 ${isCorrect ? 'text-emerald-400' : 'text-white'}`}>
-                  {name}
-                </p>
-                {isCorrect && (
-                  <p className="text-emerald-300 text-lg font-semibold mt-1">✓ Respuesta correcta</p>
-                )}
-              </div>
+        {[p1, p2].map(({ person, name, photo }) => (
+          <div key={person} className="flex flex-col items-center gap-6">
+            <div className="w-52 h-52 rounded-full overflow-hidden border-4 border-white/20">
+              {photo
+                ? <img src={photo} alt={name} className="w-full h-full object-cover" />
+                : <div className="w-full h-full bg-white/10 flex items-center justify-center">
+                    <span className="text-7xl font-black text-white/50">{name[0]}</span>
+                  </div>}
             </div>
-          )
-        })}
+            <p className="text-white text-3xl font-black">{name}</p>
+          </div>
+        ))}
       </div>
     </div>
   )
