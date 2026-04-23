@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../../../lib/supabase'
 import QuizCountdown from '../../quiz/shared/QuizCountdown'
 
-export default function AdivinaQuestion({ adivinaEvent, question, player, onResult }) {
+export default function AdivinaQuestion({ adivinaEvent, question, player, onResult, isLastQuestion = false }) {
   const [selected, setSelected] = useState(null)
   const [result, setResult] = useState(null)
   const [submitting, setSubmitting] = useState(false)
@@ -71,16 +71,19 @@ export default function AdivinaQuestion({ adivinaEvent, question, player, onResu
     )
   }
 
-  // ── Pantalla de reveal (countdown llegó a 0) ──────────────────────────────
-  if (countdown === 0) {
+  // ── Pantalla de reveal (countdown llegó a 0, o ya estamos en 'ranking') ──
+  const isRevealPhase = countdown === 0 || adivinaEvent.status === 'ranking'
+  if (isRevealPhase) {
     const correctPerson = result?.correct_person ?? question.correct_person
     const correctName  = correctPerson === 1 ? adivinaEvent.person1_name      : adivinaEvent.person2_name
     const correctPhoto = correctPerson === 1 ? adivinaEvent.person1_photo_url : adivinaEvent.person2_photo_url
     const answered = selected !== null
     const isCorrect = result?.is_correct
+    const score = player?.total_score ?? 0
+    const isRanking = adivinaEvent.status === 'ranking'
 
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#1a1040] via-[#1e1355] to-[#160e35] flex flex-col items-center justify-center px-8 gap-8">
+      <div className="min-h-screen bg-gradient-to-b from-[#1a1040] via-[#1e1355] to-[#160e35] flex flex-col items-center justify-center px-8 gap-7">
 
         {/* Veredicto */}
         {answered ? (
@@ -106,9 +109,9 @@ export default function AdivinaQuestion({ adivinaEvent, question, player, onResu
         )}
 
         {/* Respuesta correcta */}
-        <div className="flex flex-col items-center gap-5">
+        <div className="flex flex-col items-center gap-4">
           <span className="text-white/40 text-xs font-bold tracking-widest uppercase">La respuesta es</span>
-          <div className="w-44 h-44 rounded-full overflow-hidden border-4 border-emerald-400 shadow-2xl shadow-emerald-400/30">
+          <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-emerald-400 shadow-2xl shadow-emerald-400/30">
             {correctPhoto
               ? <img src={correctPhoto} alt={correctName} className="w-full h-full object-cover" />
               : <div className="w-full h-full bg-white/10 flex items-center justify-center">
@@ -118,6 +121,19 @@ export default function AdivinaQuestion({ adivinaEvent, question, player, onResu
           </div>
           <span className="text-white text-3xl font-black">{correctName}</span>
         </div>
+
+        {/* Puntaje + espera (solo cuando ya cambió a ranking) */}
+        {isRanking && (
+          <div className="flex flex-col items-center gap-3 w-full">
+            <div className="bg-white/8 border border-white/10 rounded-2xl px-8 py-4 flex items-center gap-3">
+              <span className="text-white/50 text-sm font-medium">Tu puntaje</span>
+              <span className="text-white font-black text-2xl tabular-nums ml-auto">{score}</span>
+            </div>
+            <p className="text-white/30 text-xs uppercase tracking-widest text-center">
+              {isLastQuestion ? 'Esperando resultados finales...' : 'Esperando siguiente pregunta...'}
+            </p>
+          </div>
+        )}
 
       </div>
     )

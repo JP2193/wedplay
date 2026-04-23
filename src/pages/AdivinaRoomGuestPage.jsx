@@ -158,13 +158,10 @@ export default function AdivinaRoomGuestPage() {
   if (adivinaEvent.status === 'lobby') {
     return <AdivinaWaitingRoom player={player} adivinaEvent={adivinaEvent} />
   }
-  if (adivinaEvent.status === 'question') {
+  if (adivinaEvent.status === 'question' || adivinaEvent.status === 'ranking') {
     if (!currentQuestion) return <div className="min-h-screen bg-gray-900 flex items-center justify-center text-gray-400 text-sm">Cargando pregunta...</div>
-    return <AdivinaQuestion adivinaEvent={adivinaEvent} question={currentQuestion} player={player} onResult={setLastResult} />
-  }
-  if (adivinaEvent.status === 'ranking') {
     const isLastQuestion = adivinaEvent.current_question_index >= questions.length - 1
-    return <AdivinaRankingWait player={player} lastResult={lastResult} adivinaEvent={adivinaEvent} question={currentQuestion} isLastQuestion={isLastQuestion} />
+    return <AdivinaQuestion adivinaEvent={adivinaEvent} question={currentQuestion} player={player} onResult={setLastResult} isLastQuestion={isLastQuestion} />
   }
   if (adivinaEvent.status === 'finished') {
     return <AdivinaFinalRanking player={player} adivinaEvent={adivinaEvent} />
