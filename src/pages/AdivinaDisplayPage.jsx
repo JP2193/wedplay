@@ -134,6 +134,24 @@ function LobbyDisplay({ room, adivinaEvent, players }) {
 }
 
 /* ─── Question display ───────────────────────────────── */
+const BG = 'bg-gradient-to-b from-[#0f0826] via-[#1a0f3d] to-[#0c0520]'
+
+function PersonCircle({ name, photo, ringColor }) {
+  return (
+    <div className="flex flex-col items-center gap-5">
+      <div className={`w-60 h-60 rounded-full overflow-hidden border-4 ${ringColor}
+        shadow-[0_0_60px_rgba(255,255,255,0.07)]`}>
+        {photo
+          ? <img src={photo} alt={name} className="w-full h-full object-cover" />
+          : <div className="w-full h-full bg-white/10 flex items-center justify-center">
+              <span className="text-8xl font-black text-white/40">{name[0]?.toUpperCase()}</span>
+            </div>}
+      </div>
+      <span className="text-white text-4xl font-black tracking-tight">{name}</span>
+    </div>
+  )
+}
+
 function QuestionDisplay({ adivinaEvent, question, questionNumber, totalQuestions }) {
   const [timerExpired, setTimerExpired] = useState(false)
   const [countdown, setCountdown] = useState(null)
@@ -147,7 +165,6 @@ function QuestionDisplay({ adivinaEvent, question, questionNumber, totalQuestion
     pingFiredRef.current = false
   }, [question?.id])
 
-  // Cuenta regresiva 5 → 0
   useEffect(() => {
     if (countdown === null || countdown <= 0) return
     const t = setTimeout(() => setCountdown(c => c - 1), 1000)
@@ -163,8 +180,8 @@ function QuestionDisplay({ adivinaEvent, question, questionNumber, totalQuestion
   }
 
   if (!question) return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-      <p className="text-gray-400 text-lg">Cargando pregunta...</p>
+    <div className={`min-h-screen ${BG} flex items-center justify-center`}>
+      <p className="text-white/30 text-lg">Cargando pregunta...</p>
     </div>
   )
 
@@ -173,34 +190,37 @@ function QuestionDisplay({ adivinaEvent, question, questionNumber, totalQuestion
   const p2 = { person: 2, name: adivinaEvent.person2_name, photo: adivinaEvent.person2_photo_url }
   const correct = question.correct_person === 1 ? p1 : p2
 
-  // ── Pantalla de cuenta regresiva (5-4-3-2-1) ────────────────────────────
+  // ── Cuenta regresiva ─────────────────────────────────────────────────────
   if (timerExpired && countdown !== null && countdown > 0) {
     return (
-      <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center gap-6">
-        <span className="text-white/30 text-3xl font-semibold uppercase tracking-widest">Revelando en</span>
-        <span className="text-amber-400 font-black tabular-nums leading-none" style={{ fontSize: '22rem' }}>
+      <div className={`min-h-screen ${BG} flex flex-col items-center justify-center gap-4`}>
+        <span className="text-white/25 text-3xl font-semibold uppercase tracking-[0.3em]">Revelando en</span>
+        <span className="font-black tabular-nums leading-none text-amber-400"
+          style={{ fontSize: '20rem', textShadow: '0 0 120px rgba(251,191,36,0.35)' }}>
           {countdown}
         </span>
       </div>
     )
   }
 
-  // ── Pantalla de reveal (countdown llegó a 0) ─────────────────────────────
+  // ── Reveal ───────────────────────────────────────────────────────────────
   if (timerExpired && countdown === 0) {
     return (
-      <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center gap-10">
-        <span className="text-white/40 text-3xl font-semibold uppercase tracking-widest">La respuesta es</span>
-        <div className="w-80 h-80 rounded-full overflow-hidden border-8 border-emerald-400 shadow-[0_0_80px_20px_rgba(52,211,153,0.25)]">
+      <div className={`min-h-screen ${BG} flex flex-col items-center justify-center gap-8`}>
+        <span className="text-white/30 text-2xl font-semibold uppercase tracking-[0.3em]">La respuesta es</span>
+        <div className="w-72 h-72 rounded-full overflow-hidden border-8 border-emerald-400
+          shadow-[0_0_0_16px_rgba(52,211,153,0.08),0_0_80px_rgba(52,211,153,0.3)]">
           {correct.photo
             ? <img src={correct.photo} alt={correct.name} className="w-full h-full object-cover" />
             : <div className="w-full h-full bg-white/10 flex items-center justify-center">
-                <span className="text-9xl font-black text-white/50">{correct.name[0]}</span>
-              </div>
-          }
+                <span className="text-9xl font-black text-white/40">{correct.name[0]}</span>
+              </div>}
         </div>
-        <p className="text-white text-7xl font-black">{correct.name}</p>
-        <div className="flex items-center gap-3 bg-emerald-500/20 border border-emerald-400/40 px-8 py-3 rounded-2xl">
-          <svg className="w-7 h-7 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <p className="text-white font-black tracking-tight" style={{ fontSize: '5.5rem', lineHeight: 1 }}>
+          {correct.name}
+        </p>
+        <div className="flex items-center gap-3 bg-emerald-500/15 border border-emerald-400/30 px-8 py-3.5 rounded-2xl mt-2">
+          <svg className="w-7 h-7 text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
           </svg>
           <span className="text-emerald-300 text-2xl font-bold">Respuesta correcta</span>
@@ -209,15 +229,24 @@ function QuestionDisplay({ adivinaEvent, question, questionNumber, totalQuestion
     )
   }
 
-  // ── Pantalla de pregunta (timer corriendo) ────────────────────────────────
+  // ── Pregunta ─────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col">
+    <div className={`min-h-screen ${BG} flex flex-col overflow-hidden`}>
 
-      {/* Top bar: pregunta + timer */}
-      <div className="flex items-center justify-between px-16 pt-10 pb-4">
-        <span className="text-white/40 text-2xl font-semibold">
-          Pregunta {questionNumber} <span className="text-white/20">/ {totalQuestions}</span>
-        </span>
+      {/* Glow ambiental */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute top-0 left-1/4 w-[600px] h-[300px] bg-violet-500/8 rounded-full blur-3xl -translate-y-1/2" />
+        <div className="absolute bottom-0 right-1/4 w-[400px] h-[300px] bg-indigo-500/8 rounded-full blur-3xl translate-y-1/3" />
+      </div>
+
+      {/* Top bar */}
+      <div className="relative flex items-center justify-between px-14 pt-10 pb-2">
+        <div className="flex items-center gap-3 bg-white/6 border border-white/10 rounded-2xl px-5 py-2.5">
+          <span className="text-white/35 text-sm font-bold tracking-widest uppercase">Pregunta</span>
+          <span className="text-white text-xl font-black tabular-nums">{questionNumber}</span>
+          <span className="text-white/15 text-base mx-0.5">/</span>
+          <span className="text-white/35 text-base font-semibold">{totalQuestions}</span>
+        </div>
         <DisplayTimer
           totalSeconds={adivinaEvent.timer_seconds}
           startedAt={startedAt}
@@ -226,26 +255,23 @@ function QuestionDisplay({ adivinaEvent, question, questionNumber, totalQuestion
       </div>
 
       {/* Pregunta */}
-      <div className="flex items-center justify-center px-16 py-6">
-        <h2 className="text-white text-5xl font-bold text-center leading-tight max-w-5xl">
-          {question.text}
-        </h2>
+      <div className="relative flex justify-center px-20 pt-6 pb-4">
+        <div className="bg-white/5 border border-white/8 rounded-3xl px-14 py-8 max-w-5xl w-full">
+          <h2 className="text-white text-5xl font-black text-center leading-tight">
+            {question.text}
+          </h2>
+        </div>
       </div>
 
-      {/* Fotos — círculos grandes centrados */}
-      <div className="flex-1 flex items-center justify-center gap-24 px-16 pb-16">
-        {[p1, p2].map(({ person, name, photo }) => (
-          <div key={person} className="flex flex-col items-center gap-6">
-            <div className="w-52 h-52 rounded-full overflow-hidden border-4 border-white/20">
-              {photo
-                ? <img src={photo} alt={name} className="w-full h-full object-cover" />
-                : <div className="w-full h-full bg-white/10 flex items-center justify-center">
-                    <span className="text-7xl font-black text-white/50">{name[0]}</span>
-                  </div>}
-            </div>
-            <p className="text-white text-3xl font-black">{name}</p>
-          </div>
-        ))}
+      {/* Fotos + VS */}
+      <div className="relative flex-1 flex items-center justify-center gap-16 px-16 pb-14">
+        <PersonCircle name={p1.name} photo={p1.photo} ringColor="border-rose-400/70" />
+
+        <div className="flex flex-col items-center gap-1 select-none">
+          <span className="text-white/10 font-black italic tracking-tighter" style={{ fontSize: '5rem', lineHeight: 1 }}>VS</span>
+        </div>
+
+        <PersonCircle name={p2.name} photo={p2.photo} ringColor="border-indigo-400/70" />
       </div>
     </div>
   )
@@ -387,26 +413,27 @@ export default function AdivinaDisplayPage() {
     <div className="relative">
       {content}
 
-      {/* Botón de sonido — siempre visible en esquina superior derecha */}
+      {/* Botón de sonido — ícono circular, top-right */}
       <button
         onClick={toggleAudio}
         title={audioOn ? 'Silenciar' : 'Activar sonido'}
-        className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border backdrop-blur-md transition-all duration-200
+        className={`fixed top-4 right-4 z-50 w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-200 shadow-lg
           ${audioOn
-            ? 'bg-emerald-500/20 border-emerald-400/40 text-emerald-300 hover:bg-emerald-500/30'
-            : 'bg-black/30 border-white/20 text-white/50 hover:bg-black/50 hover:text-white/70'}`}
+            ? 'bg-emerald-500 border-emerald-400 shadow-emerald-500/40 hover:bg-emerald-400'
+            : 'bg-red-500/20 border-red-400/60 text-red-400 hover:bg-red-500/30'}`}
       >
         {audioOn ? (
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          /* Speaker con ondas — activo */
+          <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072M17.95 6.05a8 8 0 010 11.9M11 5L6 9H3v6h3l5 4V5z" />
           </svg>
         ) : (
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          /* Speaker con banda cruzada — mute */
+          <svg className="w-6 h-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3l18 18" />
           </svg>
         )}
-        {audioOn ? 'Sonido ON' : 'Sonido OFF'}
       </button>
     </div>
   )
