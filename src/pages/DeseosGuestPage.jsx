@@ -56,13 +56,14 @@ export default function DeseosGuestPage() {
     setSubmitting(true)
     setError(null)
 
-    const { error: insertError } = await supabase
-      .from('wishes')
-      .insert({ room_id: room.id, guest_name: guestName, message: message.trim() })
+    const { error: insertError } = await supabase.rpc('submit_wish', {
+      p_room_id: room.id,
+      p_guest_name: guestName,
+      p_message: message.trim(),
+    })
 
     if (insertError) {
-      console.error('wishes insert error:', insertError)
-      setError(`Error: ${insertError.message} (code: ${insertError.code})`)
+      setError('No se pudo enviar el deseo. Intentá de nuevo.')
     } else {
       setMessage('')
       setSubmitted(true)
