@@ -61,7 +61,8 @@ export default function DeseosGuestPage() {
       .insert({ room_id: room.id, guest_name: guestName, message: message.trim() })
 
     if (insertError) {
-      setError('No se pudo enviar el deseo. Intentá de nuevo.')
+      console.error('wishes insert error:', insertError)
+      setError(`Error: ${insertError.message} (code: ${insertError.code})`)
     } else {
       setMessage('')
       setSubmitted(true)
