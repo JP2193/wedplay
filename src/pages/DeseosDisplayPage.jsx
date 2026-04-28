@@ -113,30 +113,25 @@ export default function DeseosDisplayPage() {
       </div>
 
       {/* Floating decorative quotes */}
-      <div className="absolute top-16 left-16 text-white/5 select-none pointer-events-none"
-        style={{ fontSize: '18rem', lineHeight: 1, fontFamily: 'Georgia, serif' }}>"</div>
-      <div className="absolute bottom-16 right-16 text-white/5 select-none pointer-events-none"
-        style={{ fontSize: '18rem', lineHeight: 1, fontFamily: 'Georgia, serif' }}>"</div>
+      <div className="absolute top-8 left-10 select-none pointer-events-none"
+        style={{ fontSize: '20rem', lineHeight: 1, fontFamily: 'Georgia, serif', color: colorTheme.accent, opacity: 0.12 }}>&ldquo;</div>
+      <div className="absolute bottom-8 right-10 select-none pointer-events-none"
+        style={{ fontSize: '20rem', lineHeight: 1, fontFamily: 'Georgia, serif', color: colorTheme.accent, opacity: 0.12 }}>&rdquo;</div>
 
       {/* Main card */}
       <div
         className="relative z-10 flex flex-col items-center text-center max-w-3xl px-12"
         style={{ opacity: visible ? 1 : 0, transition: 'opacity 0.6s ease' }}
       >
-        <div
-          className="text-8xl leading-none mb-8 select-none"
-          style={{ color: colorTheme.accent, opacity: 0.5, fontFamily: 'Georgia, serif' }}
-        >"</div>
-
-        <p className="text-white font-light leading-relaxed"
-          style={{ fontSize: wish.message.length > 120 ? '2.2rem' : wish.message.length > 60 ? '2.8rem' : '3.5rem', lineHeight: 1.3 }}>
+        <p className="font-light leading-relaxed"
+          style={{
+            fontSize: wish.message.length > 120 ? '2.8rem' : wish.message.length > 60 ? '3.6rem' : '4.5rem',
+            lineHeight: 1.25,
+            color: 'white',
+            textShadow: '0 2px 40px rgba(0,0,0,0.8), 0 0 80px rgba(0,0,0,0.5)',
+          }}>
           {wish.message}
         </p>
-
-        <div
-          className="text-8xl leading-none mt-8 select-none self-end"
-          style={{ color: colorTheme.accent, opacity: 0.5, fontFamily: 'Georgia, serif' }}
-        >"</div>
 
         <p className="mt-8 text-lg font-semibold" style={{ color: colorTheme.accent }}>
           — {wish.guest_name}

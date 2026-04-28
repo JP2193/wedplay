@@ -13,6 +13,7 @@ $$;
 GRANT EXECUTE ON FUNCTION delete_wish TO authenticated;
 
 -- 2. edit_wish (guest edita su propio deseo, valida por guest_name)
+--    Respeta moderation_mode: en auto el deseo queda aprobado, en manual vuelve a pending
 CREATE OR REPLACE FUNCTION edit_wish(
   p_wish_id    UUID,
   p_guest_name TEXT,
@@ -20,10 +21,22 @@ CREATE OR REPLACE FUNCTION edit_wish(
 )
 RETURNS wishes LANGUAGE plpgsql SECURITY DEFINER AS $$
 DECLARE
-  result wishes;
+  result       wishes;
+  mod_settings JSONB;
+  mod_mode     TEXT;
+  new_status   TEXT;
 BEGIN
+  -- Leer el moderation_mode del room al que pertenece el wish
+  SELECT rm.settings INTO mod_settings
+  FROM room_modules rm
+  JOIN wishes w ON w.room_id = rm.room_id
+  WHERE w.id = p_wish_id AND rm.module_key = 'deseos';
+
+  mod_mode   := COALESCE(mod_settings->>'moderation_mode', 'manual');
+  new_status := CASE WHEN mod_mode = 'auto' THEN 'approved' ELSE 'pending' END;
+
   UPDATE wishes
-  SET message = p_message, status = 'pending'
+  SET message = p_message, status = new_status
   WHERE id = p_wish_id AND guest_name = p_guest_name
   RETURNING * INTO result;
 
