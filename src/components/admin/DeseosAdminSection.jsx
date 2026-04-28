@@ -63,16 +63,42 @@ function OptionsMenu({ onConfig, onReset }) {
   )
 }
 
-/* ─── ModeSelector (setup + config modal) ────────────────────── */
-function ModeSelector({ current, onSave, onClose, isSetup = false }) {
-  const [selected, setSelected] = useState(current || null)
+/* ─── ModeSelector (setup + config) ─────────────────────────── */
+function ModeSelector({ currentMod, currentDisplay, onSave, onClose, isSetup = false }) {
+  const [mod, setMod] = useState(currentMod || null)
+  const [display, setDisplay] = useState(currentDisplay || null)
   const [saving, setSaving] = useState(false)
 
   async function handleSave() {
-    if (!selected) return
+    if (!mod || !display) return
     setSaving(true)
-    await onSave(selected)
+    await onSave(mod, display)
     setSaving(false)
+  }
+
+  function OptionBtn({ value, selected, onClick, icon, title, desc }) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className={`w-full text-left rounded-2xl border-2 p-3.5 transition-all ${
+          selected ? 'border-rose-400 bg-rose-50' : 'border-gray-200 hover:border-gray-300'
+        }`}
+      >
+        <div className="flex items-center gap-3">
+          <span className="text-xl">{icon}</span>
+          <div className="flex-1">
+            <p className="font-semibold text-gray-800 text-sm">{title}</p>
+            <p className="text-xs text-gray-500 mt-0.5">{desc}</p>
+          </div>
+          {selected && (
+            <svg className="w-5 h-5 text-rose-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+            </svg>
+          )}
+        </div>
+      </button>
+    )
   }
 
   return (
@@ -80,60 +106,44 @@ function ModeSelector({ current, onSave, onClose, isSetup = false }) {
       <div className="bg-white rounded-2xl w-full max-w-sm p-6 space-y-5 shadow-xl">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-800">
-            {isSetup ? '¿Cómo querés moderar los deseos?' : 'Cambiar modo de moderación'}
+            {isSetup ? 'Configurá los deseos' : 'Cambiar configuración'}
           </h2>
           {!isSetup && (
             <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
           )}
         </div>
-        {isSetup && (
-          <p className="text-sm text-gray-500 -mt-2">Elegí cómo se publican los mensajes de tus invitados.</p>
-        )}
 
-        <div className="space-y-3">
-          {[
-            {
-              key: 'auto',
-              icon: '⚡',
-              title: 'Automática',
-              desc: 'Los deseos aparecen en el tablero al instante, sin revisión.',
-            },
-            {
-              key: 'manual',
-              icon: '👁',
-              title: 'Manual',
-              desc: 'Vos aprobás o rechazás cada deseo antes de que aparezca.',
-            },
-          ].map(opt => (
-            <button
-              key={opt.key}
-              type="button"
-              onClick={() => setSelected(opt.key)}
-              className={`w-full text-left rounded-2xl border-2 p-4 transition-all ${
-                selected === opt.key
-                  ? 'border-rose-400 bg-rose-50'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">{opt.icon}</span>
-                <div>
-                  <p className="font-semibold text-gray-800 text-sm">{opt.title}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{opt.desc}</p>
-                </div>
-                {selected === opt.key && (
-                  <svg className="w-5 h-5 text-rose-400 ml-auto shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                  </svg>
-                )}
-              </div>
-            </button>
-          ))}
+        {/* Moderación */}
+        <div className="space-y-2">
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Moderación</p>
+          <OptionBtn
+            value="auto" selected={mod === 'auto'} onClick={() => setMod('auto')}
+            icon="⚡" title="Automática" desc="Los deseos aparecen al instante, sin revisión."
+          />
+          <OptionBtn
+            value="manual" selected={mod === 'manual'} onClick={() => setMod('manual')}
+            icon="👁" title="Manual" desc="Aprobás o rechazás cada deseo antes de que aparezca."
+          />
+        </div>
+
+        <div className="border-t border-gray-100" />
+
+        {/* Vista de invitados */}
+        <div className="space-y-2">
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Vista de invitados</p>
+          <OptionBtn
+            value="masonry" selected={display === 'masonry'} onClick={() => setDisplay('masonry')}
+            icon="📋" title="Pizarra" desc="Todos los deseos visibles en mosaico de dos columnas."
+          />
+          <OptionBtn
+            value="carousel" selected={display === 'carousel'} onClick={() => setDisplay('carousel')}
+            icon="🎠" title="Rotativo" desc="Un deseo a la vez, cambia automáticamente cada 5 segundos."
+          />
         </div>
 
         <button
           onClick={handleSave}
-          disabled={!selected || saving}
+          disabled={!mod || !display || saving}
           className="btn-primary w-full"
         >
           {saving ? 'Guardando...' : isSetup ? 'Confirmar y empezar →' : 'Guardar cambios'}
@@ -167,7 +177,7 @@ function DeleteModal({ onConfirm, onClose, loading }) {
 }
 
 /* ─── WishCard ────────────────────────────────────────────── */
-function WishCard({ wish, moderationMode, onApprove, onReject }) {
+function WishCard({ wish, moderationMode, onApprove, onReject, onDelete }) {
   const isPending = wish.status === 'pending'
   const isApproved = wish.status === 'approved'
   const isRejected = wish.status === 'rejected'
@@ -182,6 +192,10 @@ function WishCard({ wish, moderationMode, onApprove, onReject }) {
     setActing(true)
     await onReject(wish.id)
     setActing(false)
+  }
+  function handleDelete() {
+    if (!window.confirm(`¿Eliminar el deseo de ${wish.guest_name}?`)) return
+    onDelete(wish.id)
   }
 
   return (
@@ -205,6 +219,16 @@ function WishCard({ wish, moderationMode, onApprove, onReject }) {
             {new Date(wish.created_at).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' })}
           </p>
         </div>
+        {/* Botón eliminar */}
+        <button
+          onClick={handleDelete}
+          className="text-gray-300 hover:text-red-400 transition-colors shrink-0 mt-0.5"
+          title="Eliminar deseo"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
       </div>
 
       {moderationMode === 'manual' && isPending && (
@@ -235,7 +259,8 @@ export default function DeseosAdminSection() {
   const { room } = useAdmin()
   const [wishes, setWishes] = useState([])
   const [loading, setLoading] = useState(true)
-  const [moderationMode, setModerationMode] = useState(null) // null = not configured yet
+  const [moderationMode, setModerationMode] = useState(null)
+  const [displayMode, setDisplayMode] = useState(null)
   const [showSetup, setShowSetup] = useState(false)
   const [showConfig, setShowConfig] = useState(false)
   const [showReset, setShowReset] = useState(false)
@@ -244,11 +269,12 @@ export default function DeseosAdminSection() {
 
   useEffect(() => {
     if (!room) return
-    // Read moderation_mode from room_modules settings
     const deseosModule = room.room_modules?.find(m => m.module_key === 'deseos')
-    const mode = deseosModule?.settings?.moderation_mode ?? null
-    setModerationMode(mode)
-    if (!mode) setShowSetup(true)
+    const mod = deseosModule?.settings?.moderation_mode ?? null
+    const disp = deseosModule?.settings?.display_mode ?? null
+    setModerationMode(mod)
+    setDisplayMode(disp)
+    if (!mod || !disp) setShowSetup(true)
 
     fetchWishes()
 
@@ -273,9 +299,10 @@ export default function DeseosAdminSection() {
     setLoading(false)
   }
 
-  async function handleSaveMode(mode) {
-    await updateModule(room.id, 'deseos', { settings: { moderation_mode: mode } })
-    setModerationMode(mode)
+  async function handleSaveMode(mod, disp) {
+    await updateModule(room.id, 'deseos', { settings: { moderation_mode: mod, display_mode: disp } })
+    setModerationMode(mod)
+    setDisplayMode(disp)
     setShowSetup(false)
     setShowConfig(false)
   }
@@ -286,6 +313,11 @@ export default function DeseosAdminSection() {
 
   async function handleReject(wishId) {
     await supabase.rpc('reject_wish', { p_wish_id: wishId })
+  }
+
+  async function handleDelete(wishId) {
+    await supabase.rpc('delete_wish', { p_wish_id: wishId })
+    setWishes(prev => prev.filter(w => w.id !== wishId))
   }
 
   async function handleApproveAll() {
@@ -310,14 +342,17 @@ export default function DeseosAdminSection() {
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center justify-between mb-2">
             <button onClick={() => navigate('/admin')} className="text-rose-400 text-sm hover:text-rose-500 flex items-center gap-1">← Panel</button>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap justify-end">
               {moderationMode && (
                 <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                  moderationMode === 'auto'
-                    ? 'bg-emerald-100 text-emerald-700'
-                    : 'bg-amber-100 text-amber-700'
+                  moderationMode === 'auto' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
                 }`}>
-                  {moderationMode === 'auto' ? '⚡ Automática' : '👁 Manual'}
+                  {moderationMode === 'auto' ? '⚡ Auto' : '👁 Manual'}
+                </span>
+              )}
+              {displayMode && (
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700">
+                  {displayMode === 'masonry' ? '📋 Pizarra' : '🎠 Rotativo'}
                 </span>
               )}
               <OptionsMenu onConfig={() => setShowConfig(true)} onReset={() => setShowReset(true)} />
@@ -335,7 +370,6 @@ export default function DeseosAdminSection() {
           <div className="text-center text-gray-400 text-sm py-12">Cargando...</div>
         ) : (
           <>
-            {/* Aprobar todos */}
             {moderationMode === 'manual' && pendingCount > 0 && (
               <button
                 onClick={handleApproveAll}
@@ -359,6 +393,7 @@ export default function DeseosAdminSection() {
                   moderationMode={moderationMode}
                   onApprove={handleApprove}
                   onReject={handleReject}
+                  onDelete={handleDelete}
                 />
               ))
             )}
@@ -367,10 +402,17 @@ export default function DeseosAdminSection() {
       </div>
 
       {showSetup && (
-        <ModeSelector isSetup current={null} onSave={handleSaveMode} onClose={() => {}} />
+        <ModeSelector
+          isSetup
+          currentMod={null} currentDisplay={null}
+          onSave={handleSaveMode} onClose={() => {}}
+        />
       )}
       {showConfig && (
-        <ModeSelector current={moderationMode} onSave={handleSaveMode} onClose={() => setShowConfig(false)} />
+        <ModeSelector
+          currentMod={moderationMode} currentDisplay={displayMode}
+          onSave={handleSaveMode} onClose={() => setShowConfig(false)}
+        />
       )}
       {showReset && (
         <DeleteModal onConfirm={handleReset} onClose={() => setShowReset(false)} loading={resetting} />

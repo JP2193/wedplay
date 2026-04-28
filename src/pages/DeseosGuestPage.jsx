@@ -11,7 +11,7 @@ const CARD_COLORS = [
   'bg-sky-100',
 ]
 
-/* ─── WishCard ──────────────────────────────────────────────── */
+/* ─── WishCard (mosaico) ────────────────────────────────────── */
 function WishCard({ wish, index }) {
   const color = CARD_COLORS[index % CARD_COLORS.length]
   return (
@@ -22,6 +22,62 @@ function WishCard({ wish, index }) {
         <span className="text-2xl leading-none ml-1 opacity-30">"</span>
       </p>
       <p className="text-xs font-semibold mt-2.5 opacity-60">— {wish.guest_name}</p>
+    </div>
+  )
+}
+
+/* ─── CarouselView ──────────────────────────────────────────── */
+function CarouselView({ wishes }) {
+  const [activeIdx, setActiveIdx] = useState(0)
+  const [visible, setVisible] = useState(true)
+
+  useEffect(() => {
+    if (wishes.length <= 1) return
+    const interval = setInterval(() => {
+      setVisible(false)
+      setTimeout(() => {
+        setActiveIdx(i => (i + 1) % wishes.length)
+        setVisible(true)
+      }, 350)
+    }, 5000)
+    return () => clearInterval(interval)
+  }, [wishes.length])
+
+  // Reset index if wishes shrink
+  useEffect(() => {
+    if (activeIdx >= wishes.length) setActiveIdx(0)
+  }, [wishes.length])
+
+  if (wishes.length === 0) return null
+
+  const wish = wishes[activeIdx]
+  const color = CARD_COLORS[activeIdx % CARD_COLORS.length]
+
+  return (
+    <div className="flex flex-col items-center gap-6 py-4">
+      {/* Card central */}
+      <div
+        className={`${color} rounded-3xl shadow-lg p-8 w-full max-w-sm text-center transition-opacity duration-300`}
+        style={{ opacity: visible ? 1 : 0 }}
+      >
+        <p className="text-3xl leading-none opacity-20 mb-3">"</p>
+        <p className="text-gray-800 text-xl font-medium leading-relaxed">{wish.message}</p>
+        <p className="text-3xl leading-none opacity-20 mt-3 text-right">"</p>
+        <p className="text-sm font-semibold mt-5 opacity-60">— {wish.guest_name}</p>
+      </div>
+
+      {/* Dots */}
+      {wishes.length > 1 && (
+        <div className="flex gap-2">
+          {wishes.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => { setVisible(false); setTimeout(() => { setActiveIdx(i); setVisible(true) }, 350) }}
+              className={`w-2 h-2 rounded-full transition-all ${i === activeIdx ? 'bg-rose-400 w-4' : 'bg-gray-300'}`}
+            />
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -57,9 +113,7 @@ function WishSheet({ room, guestName, onClose, onSent }) {
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col justify-end">
-      {/* Overlay */}
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      {/* Sheet */}
       <div className="relative bg-white rounded-t-3xl p-6 space-y-4 shadow-2xl">
         <div className="flex items-center justify-between">
           <h2 className="font-semibold text-gray-800">Dejá tu deseo ✨</h2>
@@ -102,7 +156,7 @@ export default function DeseosGuestPage() {
   const [wishes, setWishes] = useState([])
   const [loading, setLoading] = useState(true)
   const [showSheet, setShowSheet] = useState(false)
-  const [toast, setToast] = useState(null) // 'sent' | 'pending'
+  const [toast, setToast] = useState(null)
 
   useEffect(() => {
     const name = getGuestName(code)
@@ -116,7 +170,6 @@ export default function DeseosGuestPage() {
     })
   }, [code])
 
-  // Realtime: re-fetch on any approved wish change
   useEffect(() => {
     if (!room) return
     const channel = supabase
@@ -141,12 +194,14 @@ export default function DeseosGuestPage() {
 
   function handleSent() {
     setShowSheet(false)
-    // Check if moderation mode is manual (wish won't appear immediately)
     const deseosModule = room?.room_modules?.find(m => m.module_key === 'deseos')
     const mode = deseosModule?.settings?.moderation_mode
     setToast(mode === 'manual' ? 'pending' : 'sent')
     setTimeout(() => setToast(null), 4000)
   }
+
+  const deseosModule = room?.room_modules?.find(m => m.module_key === 'deseos')
+  const displayMode = deseosModule?.settings?.display_mode ?? 'masonry'
 
   if (loading) {
     return (
@@ -161,19 +216,26 @@ export default function DeseosGuestPage() {
       {/* Header */}
       <header className="bg-white/80 backdrop-blur border-b border-amber-100 px-4 py-3 sticky top-0 z-10">
         <div className="max-w-lg mx-auto flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-xl shrink-0">✨</span>
-            <h1 className="font-semibold text-gray-800 truncate">Deseos</h1>
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              onClick={() => navigate(`/${code}`)}
+              className="text-rose-400 text-sm hover:text-rose-500 flex items-center gap-1 shrink-0"
+            >
+              ← Lobby
+            </button>
+            <span className="text-amber-200">|</span>
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="text-lg shrink-0">✨</span>
+              <h1 className="font-semibold text-gray-800 truncate">Deseos</h1>
+            </div>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
             {toast && (
               <span className={`text-xs font-medium px-3 py-1.5 rounded-full ${
-                toast === 'pending'
-                  ? 'bg-amber-100 text-amber-700'
-                  : 'bg-emerald-100 text-emerald-700'
+                toast === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
               }`}>
-                {toast === 'pending' ? '⏳ Pendiente de aprobación' : '✓ ¡Deseo enviado!'}
+                {toast === 'pending' ? '⏳ Pendiente' : '✓ ¡Enviado!'}
               </span>
             )}
             <button
@@ -186,7 +248,7 @@ export default function DeseosGuestPage() {
         </div>
       </header>
 
-      {/* Mosaico */}
+      {/* Contenido */}
       <div className="max-w-lg mx-auto p-4 pb-12">
         {wishes.length === 0 ? (
           <div className="text-center py-20">
@@ -199,6 +261,8 @@ export default function DeseosGuestPage() {
               Escribir deseo
             </button>
           </div>
+        ) : displayMode === 'carousel' ? (
+          <CarouselView wishes={wishes} />
         ) : (
           <div className="columns-2 gap-3">
             {wishes.map((wish, i) => (
@@ -208,7 +272,6 @@ export default function DeseosGuestPage() {
         )}
       </div>
 
-      {/* Bottom sheet */}
       {showSheet && room && guestName && (
         <WishSheet
           room={room}
