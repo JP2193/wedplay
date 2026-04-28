@@ -58,21 +58,24 @@ function CarouselView({ wishes, guestName, onEdit, onDelete }) {
   return (
     <div className="flex flex-col items-center gap-6 py-4">
       <div
-        className={`${color} rounded-3xl shadow-lg p-8 w-full max-w-sm text-center transition-opacity duration-300 relative`}
+        className={`${color} rounded-3xl shadow-lg px-6 py-8 w-full max-w-sm text-center transition-opacity duration-300 relative overflow-hidden`}
         style={{ opacity: visible ? 1 : 0 }}
       >
+        {/* Comillas decorativas absolutas — no afectan el flujo */}
+        <span className="absolute top-2 left-3 leading-none opacity-15 select-none pointer-events-none"
+          style={{ fontSize: '4.5rem', fontFamily: 'Georgia, serif', lineHeight: 1 }}>&ldquo;</span>
+        <span className="absolute bottom-12 right-3 leading-none opacity-15 select-none pointer-events-none"
+          style={{ fontSize: '4.5rem', fontFamily: 'Georgia, serif', lineHeight: 1 }}>&rdquo;</span>
+
         {isOwn && (
-          <div className="absolute top-3 right-3 flex gap-1">
+          <div className="absolute top-2 right-2 flex gap-1 z-10">
             <button onClick={onEdit} className="text-[10px] font-bold text-gray-500 hover:text-gray-700 bg-white/70 hover:bg-white px-2 py-0.5 rounded-full transition-colors">Editar</button>
             <button onClick={onDelete} className="text-[10px] font-bold text-red-400 hover:text-red-600 bg-white/70 hover:bg-white px-2 py-0.5 rounded-full transition-colors">Borrar</button>
           </div>
         )}
-        <p className="leading-none opacity-15 mb-2 text-left select-none"
-          style={{ fontSize: '5rem', fontFamily: 'Georgia, serif', lineHeight: 1 }}>&ldquo;</p>
-        <p className="text-gray-800 text-xl font-medium leading-relaxed">{wish.message}</p>
-        <p className="leading-none opacity-15 mt-2 text-right select-none"
-          style={{ fontSize: '5rem', fontFamily: 'Georgia, serif', lineHeight: 1 }}>&rdquo;</p>
-        <p className="text-sm font-semibold mt-5 opacity-60">— {wish.display_name || wish.guest_name}</p>
+
+        <p className="text-gray-800 text-lg font-medium leading-relaxed">{wish.message}</p>
+        <p className="text-base font-semibold mt-5 opacity-60">— {wish.display_name || wish.guest_name}</p>
       </div>
       {wishes.length > 1 && (
         <div className="flex gap-2">
