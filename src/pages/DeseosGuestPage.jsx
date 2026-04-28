@@ -3,19 +3,24 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { getRoomByCode, getGuestName } from '../lib/rooms'
 
-const CARD_COLORS = [
-  'bg-rose-100',
-  'bg-amber-100',
-  'bg-violet-100',
-  'bg-emerald-100',
-  'bg-sky-100',
-]
+const CARD_COLORS = ['bg-rose-100', 'bg-amber-100', 'bg-violet-100', 'bg-emerald-100', 'bg-sky-100']
+
+// Persistencia del wish propio en localStorage (sobrevive recarga, no requiere auth)
+function getMyWishId(code) { return localStorage.getItem(`wedplay-wish-${code}`) }
+function setMyWishId(code, id) { localStorage.setItem(`wedplay-wish-${code}`, id) }
+function clearMyWishId(code) { localStorage.removeItem(`wedplay-wish-${code}`) }
 
 /* ─── WishCard (mosaico) ────────────────────────────────────── */
-function WishCard({ wish, index }) {
+function WishCard({ wish, index, isOwn, onEdit, onDelete }) {
   const color = CARD_COLORS[index % CARD_COLORS.length]
   return (
-    <div className={`${color} rounded-2xl p-4 break-inside-avoid mb-3 animate-wishIn`}>
+    <div className={`${color} rounded-2xl p-4 break-inside-avoid mb-3 animate-wishIn relative`}>
+      {isOwn && (
+        <div className="absolute top-2 right-2 flex gap-1">
+          <button onClick={onEdit} className="text-[10px] font-bold text-gray-500 hover:text-gray-700 bg-white/70 hover:bg-white px-2 py-0.5 rounded-full transition-colors">Editar</button>
+          <button onClick={onDelete} className="text-[10px] font-bold text-red-400 hover:text-red-600 bg-white/70 hover:bg-white px-2 py-0.5 rounded-full transition-colors">Borrar</button>
+        </div>
+      )}
       <p className="text-gray-800 text-sm leading-relaxed">
         <span className="text-2xl leading-none mr-1 opacity-30">"</span>
         {wish.message}
@@ -27,7 +32,7 @@ function WishCard({ wish, index }) {
 }
 
 /* ─── CarouselView ──────────────────────────────────────────── */
-function CarouselView({ wishes }) {
+function CarouselView({ wishes, guestName, onEdit, onDelete }) {
   const [activeIdx, setActiveIdx] = useState(0)
   const [visible, setVisible] = useState(true)
 
@@ -35,45 +40,43 @@ function CarouselView({ wishes }) {
     if (wishes.length <= 1) return
     const interval = setInterval(() => {
       setVisible(false)
-      setTimeout(() => {
-        setActiveIdx(i => (i + 1) % wishes.length)
-        setVisible(true)
-      }, 350)
+      setTimeout(() => { setActiveIdx(i => (i + 1) % wishes.length); setVisible(true) }, 350)
     }, 5000)
     return () => clearInterval(interval)
   }, [wishes.length])
 
-  // Reset index if wishes shrink
-  useEffect(() => {
-    if (activeIdx >= wishes.length) setActiveIdx(0)
-  }, [wishes.length])
+  useEffect(() => { if (activeIdx >= wishes.length) setActiveIdx(0) }, [wishes.length])
 
   if (wishes.length === 0) return null
 
   const wish = wishes[activeIdx]
   const color = CARD_COLORS[activeIdx % CARD_COLORS.length]
+  const isOwn = wish.guest_name === guestName
 
   return (
     <div className="flex flex-col items-center gap-6 py-4">
-      {/* Card central */}
       <div
-        className={`${color} rounded-3xl shadow-lg p-8 w-full max-w-sm text-center transition-opacity duration-300`}
+        className={`${color} rounded-3xl shadow-lg p-8 w-full max-w-sm text-center transition-opacity duration-300 relative`}
         style={{ opacity: visible ? 1 : 0 }}
       >
+        {isOwn && (
+          <div className="absolute top-3 right-3 flex gap-1">
+            <button onClick={onEdit} className="text-[10px] font-bold text-gray-500 hover:text-gray-700 bg-white/70 hover:bg-white px-2 py-0.5 rounded-full transition-colors">Editar</button>
+            <button onClick={onDelete} className="text-[10px] font-bold text-red-400 hover:text-red-600 bg-white/70 hover:bg-white px-2 py-0.5 rounded-full transition-colors">Borrar</button>
+          </div>
+        )}
         <p className="text-3xl leading-none opacity-20 mb-3">"</p>
         <p className="text-gray-800 text-xl font-medium leading-relaxed">{wish.message}</p>
         <p className="text-3xl leading-none opacity-20 mt-3 text-right">"</p>
         <p className="text-sm font-semibold mt-5 opacity-60">— {wish.guest_name}</p>
       </div>
-
-      {/* Dots */}
       {wishes.length > 1 && (
         <div className="flex gap-2">
           {wishes.map((_, i) => (
             <button
               key={i}
               onClick={() => { setVisible(false); setTimeout(() => { setActiveIdx(i); setVisible(true) }, 350) }}
-              className={`w-2 h-2 rounded-full transition-all ${i === activeIdx ? 'bg-rose-400 w-4' : 'bg-gray-300'}`}
+              className={`h-2 rounded-full transition-all ${i === activeIdx ? 'bg-rose-400 w-4' : 'bg-gray-300 w-2'}`}
             />
           ))}
         </div>
@@ -82,32 +85,38 @@ function CarouselView({ wishes }) {
   )
 }
 
-/* ─── BottomSheet (formulario) ──────────────────────────────── */
-function WishSheet({ room, guestName, onClose, onSent }) {
-  const [message, setMessage] = useState('')
+/* ─── BottomSheet ───────────────────────────────────────────── */
+function WishSheet({ room, guestName, existingWish, onClose, onSent }) {
+  const isEditing = !!existingWish
+  const [message, setMessage] = useState(existingWish?.message ?? '')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
   const textareaRef = useRef(null)
 
-  useEffect(() => {
-    setTimeout(() => textareaRef.current?.focus(), 100)
-  }, [])
+  useEffect(() => { setTimeout(() => textareaRef.current?.focus(), 100) }, [])
 
   async function handleSubmit(e) {
     e.preventDefault()
     if (!message.trim()) return
     setSubmitting(true)
     setError(null)
-    const { error: err } = await supabase.rpc('submit_wish', {
-      p_room_id: room.id,
-      p_guest_name: guestName,
-      p_message: message.trim(),
-    })
-    if (err) {
-      setError('No se pudo enviar. Intentá de nuevo.')
-      setSubmitting(false)
+
+    if (isEditing) {
+      const { data, error: err } = await supabase.rpc('edit_wish', {
+        p_wish_id: existingWish.id,
+        p_guest_name: guestName,
+        p_message: message.trim(),
+      })
+      if (err) { setError('No se pudo guardar. Intentá de nuevo.'); setSubmitting(false); return }
+      onSent({ id: existingWish.id, wasEditing: true })
     } else {
-      onSent()
+      const { data, error: err } = await supabase.rpc('submit_wish', {
+        p_room_id: room.id,
+        p_guest_name: guestName,
+        p_message: message.trim(),
+      })
+      if (err) { setError('No se pudo enviar. Intentá de nuevo.'); setSubmitting(false); return }
+      onSent({ id: data?.id, wasEditing: false })
     }
   }
 
@@ -116,7 +125,7 @@ function WishSheet({ room, guestName, onClose, onSent }) {
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
       <div className="relative bg-white rounded-t-3xl p-6 space-y-4 shadow-2xl">
         <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-gray-800">Dejá tu deseo ✨</h2>
+          <h2 className="font-semibold text-gray-800">{isEditing ? 'Editar tu deseo ✏️' : 'Dejá tu deseo ✨'}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-3">
@@ -139,7 +148,7 @@ function WishSheet({ room, guestName, onClose, onSent }) {
             disabled={submitting || !message.trim()}
             className="w-full bg-amber-500 hover:bg-amber-600 disabled:opacity-40 text-white font-semibold py-3 rounded-xl transition-colors text-sm"
           >
-            {submitting ? 'Enviando...' : 'Enviar deseo ✉'}
+            {submitting ? 'Guardando...' : isEditing ? 'Guardar cambios' : 'Enviar deseo ✉'}
           </button>
         </form>
       </div>
@@ -153,15 +162,21 @@ export default function DeseosGuestPage() {
   const navigate = useNavigate()
   const [room, setRoom] = useState(null)
   const [guestName, setGuestNameState] = useState(null)
-  const [wishes, setWishes] = useState([])
+  const [wishes, setWishes] = useState([])        // solo approved (lo que ve el tablero)
+  const [myWishId, setMyWishIdState] = useState(null) // ID del wish propio (localStorage)
   const [loading, setLoading] = useState(true)
   const [showSheet, setShowSheet] = useState(false)
+  const [editingWish, setEditingWish] = useState(null)
   const [toast, setToast] = useState(null)
 
   useEffect(() => {
     const name = getGuestName(code)
     if (!name) { navigate(`/${code}`, { replace: true }); return }
     setGuestNameState(name)
+
+    // Recuperar wish ID guardado
+    const savedId = getMyWishId(code)
+    if (savedId) setMyWishIdState(savedId)
 
     getRoomByCode(code).then(r => {
       if (!r) { navigate('/', { replace: true }); return }
@@ -184,21 +199,45 @@ export default function DeseosGuestPage() {
 
   async function fetchWishes(roomId) {
     const { data } = await supabase
-      .from('wishes')
-      .select('*')
+      .from('wishes').select('*')
       .eq('room_id', roomId)
       .order('created_at', { ascending: false })
     if (data) setWishes(data)
     setLoading(false)
   }
 
-  function handleSent() {
+  function handleSent({ id, wasEditing }) {
+    if (id) {
+      setMyWishId(code, id)
+      setMyWishIdState(id)
+    }
     setShowSheet(false)
+    setEditingWish(null)
     const deseosModule = room?.room_modules?.find(m => m.module_key === 'deseos')
     const mode = deseosModule?.settings?.moderation_mode
-    setToast(mode === 'manual' ? 'pending' : 'sent')
-    setTimeout(() => setToast(null), 4000)
+    if (!wasEditing) {
+      setToast(mode === 'manual' ? 'pending' : 'sent')
+      setTimeout(() => setToast(null), 4000)
+    }
+    fetchWishes(room.id)
   }
+
+  async function handleDeleteOwn() {
+    const wishId = myWishId || myApprovedWish?.id
+    if (!wishId) return
+    if (!window.confirm('¿Eliminar tu deseo?')) return
+    await supabase.rpc('delete_own_wish', { p_wish_id: wishId, p_guest_name: guestName })
+    clearMyWishId(code)
+    setMyWishIdState(null)
+    fetchWishes(room.id)
+  }
+
+  // El wish propio aprobado (visible en el tablero)
+  const myApprovedWish = wishes.find(w => w.guest_name === guestName)
+  // Tiene deseo si está aprobado en el tablero O si tiene ID guardado en localStorage
+  const hasSubmitted = !!myApprovedWish || !!myWishId
+  // Para editar: usamos el wish aprobado si está, o construimos uno mínimo con el ID guardado
+  const wishToEdit = myApprovedWish ?? (myWishId ? { id: myWishId, message: '' } : null)
 
   const deseosModule = room?.room_modules?.find(m => m.module_key === 'deseos')
   const displayMode = deseosModule?.settings?.display_mode ?? 'masonry'
@@ -213,7 +252,6 @@ export default function DeseosGuestPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-amber-50 to-yellow-50">
-      {/* Header */}
       <header className="bg-white/80 backdrop-blur border-b border-amber-100 px-4 py-3 sticky top-0 z-10">
         <div className="max-w-lg mx-auto flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
@@ -238,35 +276,86 @@ export default function DeseosGuestPage() {
                 {toast === 'pending' ? '⏳ Pendiente' : '✓ ¡Enviado!'}
               </span>
             )}
-            <button
-              onClick={() => setShowSheet(true)}
-              className="bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors whitespace-nowrap"
-            >
-              Sumá el tuyo →
-            </button>
+
+            {/* Sin deseo propio: botón de enviar */}
+            {!hasSubmitted && (
+              <button
+                onClick={() => setShowSheet(true)}
+                className="bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors whitespace-nowrap"
+              >
+                Sumá el tuyo →
+              </button>
+            )}
+
+            {/* Deseo aprobado y visible: botones editar/borrar */}
+            {hasSubmitted && myApprovedWish && (
+              <div className="flex gap-1.5">
+                <button
+                  onClick={() => { setEditingWish(myApprovedWish); setShowSheet(true) }}
+                  className="text-xs font-semibold text-gray-500 hover:text-gray-700 bg-white border border-gray-200 px-3 py-1.5 rounded-xl transition-colors"
+                >
+                  Editar
+                </button>
+                <button
+                  onClick={handleDeleteOwn}
+                  className="text-xs font-semibold text-red-400 hover:text-red-600 bg-white border border-red-100 px-3 py-1.5 rounded-xl transition-colors"
+                >
+                  Borrar
+                </button>
+              </div>
+            )}
+
+            {/* Deseo pendiente de aprobación */}
+            {hasSubmitted && !myApprovedWish && (
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs text-amber-600 font-medium bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl">
+                  ⏳ Esperando aprobación
+                </span>
+                <button
+                  onClick={handleDeleteOwn}
+                  className="text-xs font-semibold text-red-400 hover:text-red-600 bg-white border border-red-100 px-2.5 py-1.5 rounded-xl transition-colors"
+                  title="Retirar deseo"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </header>
 
-      {/* Contenido */}
       <div className="max-w-lg mx-auto p-4 pb-12">
         {wishes.length === 0 ? (
           <div className="text-center py-20">
             <div className="text-5xl mb-4">✨</div>
             <p className="text-gray-400 text-sm">Sé el primero en dejar un deseo</p>
-            <button
-              onClick={() => setShowSheet(true)}
-              className="mt-4 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold px-6 py-2.5 rounded-xl transition-colors"
-            >
-              Escribir deseo
-            </button>
+            {!hasSubmitted && (
+              <button
+                onClick={() => setShowSheet(true)}
+                className="mt-4 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold px-6 py-2.5 rounded-xl transition-colors"
+              >
+                Escribir deseo
+              </button>
+            )}
           </div>
         ) : displayMode === 'carousel' ? (
-          <CarouselView wishes={wishes} />
+          <CarouselView
+            wishes={wishes}
+            guestName={guestName}
+            onEdit={() => { setEditingWish(myApprovedWish); setShowSheet(true) }}
+            onDelete={handleDeleteOwn}
+          />
         ) : (
           <div className="columns-2 gap-3">
             {wishes.map((wish, i) => (
-              <WishCard key={wish.id} wish={wish} index={i} />
+              <WishCard
+                key={wish.id}
+                wish={wish}
+                index={i}
+                isOwn={wish.guest_name === guestName}
+                onEdit={() => { setEditingWish(wish); setShowSheet(true) }}
+                onDelete={handleDeleteOwn}
+              />
             ))}
           </div>
         )}
@@ -276,7 +365,8 @@ export default function DeseosGuestPage() {
         <WishSheet
           room={room}
           guestName={guestName}
-          onClose={() => setShowSheet(false)}
+          existingWish={editingWish}
+          onClose={() => { setShowSheet(false); setEditingWish(null) }}
           onSent={handleSent}
         />
       )}
