@@ -18,6 +18,8 @@ import DeseosGuestPage from './pages/DeseosGuestPage'
 import TimelineGuestPage from './pages/TimelineGuestPage'
 import QuizDisplayPage from './pages/QuizDisplayPage'
 import AdivinaDisplayPage from './pages/AdivinaDisplayPage'
+import DeseosDisplayPage from './pages/DeseosDisplayPage'
+import DeseosPrintPage from './pages/DeseosPrintPage'
 
 export default function App() {
   return (
@@ -47,6 +49,8 @@ export default function App() {
         <Route path="/:code/adivina" element={<AdivinaRoomGuestPage />} />
         <Route path="/:code/adivina/display" element={<AdivinaDisplayPage />} />
         <Route path="/:code/deseos" element={<DeseosGuestPage />} />
+        <Route path="/:code/deseos/display" element={<DeseosDisplayPage />} />
+        <Route path="/:code/deseos/print" element={<DeseosPrintPage />} />
         <Route path="/:code/timeline" element={<TimelineGuestPage />} />
       </Routes>
     </BrowserRouter>

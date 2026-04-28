@@ -5,7 +5,7 @@ import { useAdmin } from '../../pages/AdminPage'
 import { updateModule } from '../../lib/rooms'
 
 /* ─── OptionsMenu ─────────────────────────────────────────── */
-function OptionsMenu({ onConfig, onReset }) {
+function OptionsMenu({ onConfig, onReset, onExport }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
 
@@ -45,6 +45,16 @@ function OptionsMenu({ onConfig, onReset }) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
             Cambiar configuración
+          </button>
+          <button
+            type="button"
+            onClick={() => { setOpen(false); onExport() }}
+            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left"
+          >
+            <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            Exportar PDF
           </button>
           <div className="border-t border-gray-100" />
           <button
@@ -355,7 +365,22 @@ export default function DeseosAdminSection() {
                   {displayMode === 'masonry' ? '📋 Pizarra' : '🎠 Rotativo'}
                 </span>
               )}
-              <OptionsMenu onConfig={() => setShowConfig(true)} onReset={() => setShowReset(true)} />
+              {room?.code && (
+                <button
+                  onClick={() => window.open(`/${room.code}/deseos/display`, '_blank')}
+                  className="flex items-center gap-1.5 text-sm font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-xl transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  Abrir pantalla
+                </button>
+              )}
+              <OptionsMenu
+                onConfig={() => setShowConfig(true)}
+                onReset={() => setShowReset(true)}
+                onExport={() => room?.code && window.open(`/${room.code}/deseos/print`, '_blank')}
+              />
             </div>
           </div>
           <div className="flex items-center gap-2">
