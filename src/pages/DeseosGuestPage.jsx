@@ -22,9 +22,11 @@ function WishCard({ wish, index, isOwn, onEdit, onDelete }) {
         </div>
       )}
       <p className="text-gray-800 text-sm leading-relaxed">
-        <span className="text-2xl leading-none mr-1 opacity-30">"</span>
+        <span className="opacity-20 mr-0.5 select-none align-middle"
+          style={{ fontSize: '1.6rem', fontFamily: 'Georgia, serif', lineHeight: 1 }}>&ldquo;</span>
         {wish.message}
-        <span className="text-2xl leading-none ml-1 opacity-30">"</span>
+        <span className="opacity-20 ml-0.5 select-none align-middle"
+          style={{ fontSize: '1.6rem', fontFamily: 'Georgia, serif', lineHeight: 1 }}>&rdquo;</span>
       </p>
       <p className="text-xs font-semibold mt-2.5 opacity-60">— {wish.guest_name}</p>
     </div>
@@ -65,9 +67,11 @@ function CarouselView({ wishes, guestName, onEdit, onDelete }) {
             <button onClick={onDelete} className="text-[10px] font-bold text-red-400 hover:text-red-600 bg-white/70 hover:bg-white px-2 py-0.5 rounded-full transition-colors">Borrar</button>
           </div>
         )}
-        <p className="text-3xl leading-none opacity-20 mb-3">"</p>
+        <p className="leading-none opacity-15 mb-2 text-left select-none"
+          style={{ fontSize: '5rem', fontFamily: 'Georgia, serif', lineHeight: 1 }}>&ldquo;</p>
         <p className="text-gray-800 text-xl font-medium leading-relaxed">{wish.message}</p>
-        <p className="text-3xl leading-none opacity-20 mt-3 text-right">"</p>
+        <p className="leading-none opacity-15 mt-2 text-right select-none"
+          style={{ fontSize: '5rem', fontFamily: 'Georgia, serif', lineHeight: 1 }}>&rdquo;</p>
         <p className="text-sm font-semibold mt-5 opacity-60">— {wish.guest_name}</p>
       </div>
       {wishes.length > 1 && (
