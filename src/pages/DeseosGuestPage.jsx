@@ -28,7 +28,7 @@ function WishCard({ wish, index, isOwn, onEdit, onDelete }) {
         <span className="opacity-20 ml-0.5 select-none align-middle"
           style={{ fontSize: '1.6rem', fontFamily: 'Georgia, serif', lineHeight: 1 }}>&rdquo;</span>
       </p>
-      <p className="text-xs font-semibold mt-2.5 opacity-60">— {wish.guest_name}</p>
+      <p className="text-xs font-semibold mt-2.5 opacity-60">— {wish.display_name || wish.guest_name}</p>
     </div>
   )
 }
@@ -72,7 +72,7 @@ function CarouselView({ wishes, guestName, onEdit, onDelete }) {
         <p className="text-gray-800 text-xl font-medium leading-relaxed">{wish.message}</p>
         <p className="leading-none opacity-15 mt-2 text-right select-none"
           style={{ fontSize: '5rem', fontFamily: 'Georgia, serif', lineHeight: 1 }}>&rdquo;</p>
-        <p className="text-sm font-semibold mt-5 opacity-60">— {wish.guest_name}</p>
+        <p className="text-sm font-semibold mt-5 opacity-60">— {wish.display_name || wish.guest_name}</p>
       </div>
       {wishes.length > 1 && (
         <div className="flex gap-2">
@@ -93,6 +93,7 @@ function CarouselView({ wishes, guestName, onEdit, onDelete }) {
 function WishSheet({ room, guestName, existingWish, onClose, onSent }) {
   const isEditing = !!existingWish
   const [message, setMessage] = useState(existingWish?.message ?? '')
+  const [displayName, setDisplayName] = useState(existingWish?.display_name ?? guestName)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
   const textareaRef = useRef(null)
@@ -110,6 +111,7 @@ function WishSheet({ room, guestName, existingWish, onClose, onSent }) {
         p_wish_id: existingWish.id,
         p_guest_name: guestName,
         p_message: message.trim(),
+        p_display_name: displayName.trim() || guestName,
       })
       if (err) { setError('No se pudo guardar. Intentá de nuevo.'); setSubmitting(false); return }
       onSent({ id: existingWish.id, wasEditing: true })
@@ -118,6 +120,7 @@ function WishSheet({ room, guestName, existingWish, onClose, onSent }) {
         p_room_id: room.id,
         p_guest_name: guestName,
         p_message: message.trim(),
+        p_display_name: displayName.trim() || guestName,
       })
       if (err) { setError('No se pudo enviar. Intentá de nuevo.'); setSubmitting(false); return }
       onSent({ id: data?.id, wasEditing: false })
@@ -133,6 +136,17 @@ function WishSheet({ room, guestName, existingWish, onClose, onSent }) {
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-3">
+          <div>
+            <label className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1.5 block">De parte de</label>
+            <input
+              className="input-field"
+              type="text"
+              value={displayName}
+              onChange={e => setDisplayName(e.target.value)}
+              placeholder={guestName}
+              maxLength={80}
+            />
+          </div>
           <textarea
             ref={textareaRef}
             className="input-field resize-none"

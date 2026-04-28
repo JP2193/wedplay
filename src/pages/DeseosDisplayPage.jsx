@@ -149,7 +149,7 @@ export default function DeseosDisplayPage() {
               className="flex items-center gap-3">
               <div className="h-px w-8" style={{ background: theme.accent, opacity: 0.5 }} />
               <p className="text-lg font-medium tracking-wide" style={{ color: theme.accent }}>
-                {wish.guest_name}
+                {wish.display_name || wish.guest_name}
               </p>
               <div className="h-px w-8" style={{ background: theme.accent, opacity: 0.5 }} />
             </motion.div>

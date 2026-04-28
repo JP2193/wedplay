@@ -212,8 +212,11 @@ function WishCard({ wish, moderationMode, onApprove, onReject, onDelete }) {
     <div className={`card p-4 transition-all ${isRejected ? 'opacity-50' : ''}`}>
       <div className="flex items-start gap-3">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1.5">
+          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
             <p className="text-sm font-semibold text-rose-500">{wish.guest_name}</p>
+            {wish.display_name && wish.display_name !== wish.guest_name && (
+              <span className="text-xs text-gray-400">· de parte de <span className="font-semibold text-gray-600">{wish.display_name}</span></span>
+            )}
             {isPending && (
               <span className="text-[10px] font-bold uppercase tracking-wide bg-amber-100 text-amber-600 px-2 py-0.5 rounded-full">Pendiente</span>
             )}
