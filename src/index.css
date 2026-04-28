@@ -48,6 +48,15 @@ body {
   animation: waiting-glow 1.4s ease-in-out infinite;
 }
 
+/* Deseos: entrada de tarjeta */
+@keyframes wishIn {
+  from { opacity: 0; transform: translateY(-14px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-wishIn {
+  animation: wishIn 0.4s ease-out;
+}
+
 @layer components {
   .btn-primary {
     @apply bg-rose-400 hover:bg-rose-500 text-white font-medium py-3 px-6 rounded-xl transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
