@@ -139,25 +139,24 @@ export default function DeseosDisplayPage() {
       <div className="absolute left-5 top-1/2 -translate-y-1/2 w-px h-20" style={{ background: p.inkSoft, opacity: 0.2 }} />
       <div className="absolute right-5 top-1/2 -translate-y-1/2 w-px h-20" style={{ background: p.inkSoft, opacity: 0.2 }} />
 
-      {/* Top-left: nombre del evento */}
-      {room?.event_name && (
-        <div
-          className="absolute top-8 left-10 font-serif italic"
-          style={{ fontSize: '1.05rem', color: p.accent, letterSpacing: '0.01em' }}
-        >
-          {room.event_name}
-        </div>
-      )}
-
-      {/* Top-right: fecha */}
-      {room?.event_date && (
-        <div
-          className="absolute top-9 right-10"
-          style={{ fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: p.inkSoft }}
-        >
-          {new Date(room.event_date).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })}
-        </div>
-      )}
+      {/* Top-center: nombre del evento + fecha */}
+      <div className="absolute top-8 left-0 right-0 flex flex-col items-center gap-1 z-10">
+        {room?.event_name && (
+          <div
+            className="font-serif italic"
+            style={{ fontSize: '1.05rem', color: p.accent, letterSpacing: '0.01em' }}
+          >
+            {room.event_name}
+          </div>
+        )}
+        {room?.event_date && (
+          <div
+            style={{ fontSize: '0.6rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: p.inkSoft }}
+          >
+            {new Date(room.event_date).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })}
+          </div>
+        )}
+      </div>
 
       {/* Contenido central */}
       <div className="relative z-10 flex flex-col items-center text-center px-20 max-w-5xl w-full">
@@ -206,14 +205,6 @@ export default function DeseosDisplayPage() {
             </motion.div>
           </motion.div>
         </AnimatePresence>
-      </div>
-
-      {/* Bottom-left: hint QR */}
-      <div
-        className="absolute bottom-8 left-10"
-        style={{ fontSize: '0.6rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: p.inkSoft, opacity: 0.6 }}
-      >
-        Sumá tu deseo · QR en cada mesa
       </div>
 
       {/* Bottom-right: dots + contador */}
