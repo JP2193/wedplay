@@ -26,7 +26,8 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['DM Sans', 'Inter', 'system-ui', 'sans-serif'],
+        serif: ['Fraunces', 'Georgia', 'serif'],
       },
     },
   },

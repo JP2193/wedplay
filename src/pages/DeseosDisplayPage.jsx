@@ -4,13 +4,14 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import { getRoomByCode } from '../lib/rooms'
 
-const THEMES = [
-  { from: '#4c0519', to: '#1c1917', accent: '#fda4af', glow: 'rgba(253,164,175,0.15)' },
-  { from: '#431407', to: '#1c1917', accent: '#fdba74', glow: 'rgba(253,186,116,0.15)' },
-  { from: '#2e1065', to: '#0f172a', accent: '#c4b5fd', glow: 'rgba(196,181,253,0.15)' },
-  { from: '#052e16', to: '#0f172a', accent: '#6ee7b7', glow: 'rgba(110,231,183,0.15)' },
-  { from: '#0c1445', to: '#0f172a', accent: '#93c5fd', glow: 'rgba(147,197,253,0.15)' },
-]
+const PALETTE = {
+  bg:       '#f6f0e3',
+  bgGrad:   'linear-gradient(135deg, #f6f0e3 0%, #f9f3e6 50%, #efe4cc 100%)',
+  ink:      '#2a2114',
+  inkSoft:  '#6b5a3a',
+  accent:   '#a8843a',
+  quote:    '#c9a876',
+}
 
 const messageVariants = {
   initial: { opacity: 0, y: 60, filter: 'blur(8px)' },
@@ -77,106 +78,167 @@ export default function DeseosDisplayPage() {
     if (wishes.length > 0 && activeIdx >= wishes.length) setActiveIdx(0)
   }, [wishes.length])
 
+  const p = PALETTE
+
   if (loading) return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-      <div className="text-white/20 text-sm tracking-widest uppercase">Cargando...</div>
+    <div className="min-h-screen flex items-center justify-center" style={{ background: p.bgGrad }}>
+      <div className="text-sm tracking-widest uppercase" style={{ color: p.inkSoft }}>Cargando...</div>
     </div>
   )
   if (error) return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center p-8">
-      <p className="text-white/30 text-center">{error}</p>
+    <div className="min-h-screen flex items-center justify-center p-8" style={{ background: p.bgGrad }}>
+      <p className="text-center" style={{ color: p.inkSoft }}>{error}</p>
     </div>
   )
 
   if (wishes.length === 0) return (
-    <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center gap-4 relative overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/3 left-1/3 w-[600px] h-[600px] rounded-full blur-3xl" style={{ background: 'radial-gradient(circle, rgba(253,164,175,0.06) 0%, transparent 70%)' }} />
-      </div>
-      <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 1, ease: 'easeOut' }}
-        className="text-7xl">✨</motion.div>
-      <p className="text-white/25 text-xl font-light tracking-wide">Los deseos aparecerán acá</p>
-      {room && <p className="text-white/10 font-mono tracking-[0.3em] text-sm mt-2">{room.code}</p>}
+    <div className="min-h-screen flex flex-col items-center justify-center gap-4 relative overflow-hidden" style={{ background: p.bgGrad }}>
+      <motion.div
+        initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 1, ease: 'easeOut' }}
+        className="font-serif italic text-5xl"
+        style={{ color: p.quote }}
+      >
+        ❝
+      </motion.div>
+      <p className="text-xl font-light tracking-wide" style={{ color: p.inkSoft }}>
+        Los deseos aparecerán acá
+      </p>
+      {room?.code && (
+        <p className="font-mono tracking-[0.3em] text-sm mt-2" style={{ color: p.quote }}>
+          {room.code}
+        </p>
+      )}
     </div>
   )
 
   const wish = wishes[activeIdx] ?? wishes[0]
-  const theme = THEMES[activeIdx % THEMES.length]
-  const fontSize = wish.message.length > 150 ? '2.4rem' : wish.message.length > 80 ? '3.2rem' : '4rem'
+  const fontSize = wish.message.length > 200 ? '1.75rem' : wish.message.length > 100 ? '2.25rem' : '2.75rem'
+  const isShort = wish.message.length < 80
 
   return (
-    <div className="h-screen overflow-hidden relative flex flex-col items-center justify-center"
-      style={{ background: `linear-gradient(135deg, ${theme.from} 0%, ${theme.to} 100%)` }}>
-
-      {/* Fondo animado */}
-      <motion.div key={`bg-${activeIdx}`} className="absolute inset-0 pointer-events-none"
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1.2 }}>
-        <div className="absolute top-0 left-0 w-[80vw] h-[80vh] rounded-full blur-[120px] -translate-x-1/3 -translate-y-1/3"
-          style={{ background: `radial-gradient(circle, ${theme.glow} 0%, transparent 70%)` }} />
-        <div className="absolute bottom-0 right-0 w-[60vw] h-[60vh] rounded-full blur-[100px] translate-x-1/3 translate-y-1/3"
-          style={{ background: `radial-gradient(circle, ${theme.glow} 0%, transparent 70%)` }} />
-      </motion.div>
-
+    <div
+      className="h-screen overflow-hidden relative flex flex-col items-center justify-center"
+      style={{ background: p.bgGrad }}
+    >
       {/* Comillas decorativas de fondo */}
-      <div className="absolute top-6 left-8 select-none pointer-events-none leading-none"
-        style={{ fontSize: '22rem', fontFamily: 'Georgia, serif', color: theme.accent, opacity: 0.07, lineHeight: 1 }}>
+      <div
+        className="absolute top-4 left-6 select-none pointer-events-none leading-none font-serif"
+        style={{ fontSize: '20rem', color: p.quote, opacity: 0.08, lineHeight: 1 }}
+      >
         &ldquo;
       </div>
-      <div className="absolute bottom-6 right-8 select-none pointer-events-none leading-none"
-        style={{ fontSize: '22rem', fontFamily: 'Georgia, serif', color: theme.accent, opacity: 0.07, lineHeight: 1 }}>
+      <div
+        className="absolute bottom-4 right-6 select-none pointer-events-none leading-none font-serif"
+        style={{ fontSize: '20rem', color: p.quote, opacity: 0.08, lineHeight: 1 }}
+      >
         &rdquo;
       </div>
 
+      {/* Líneas laterales ornamentales */}
+      <div className="absolute left-5 top-1/2 -translate-y-1/2 w-px h-20" style={{ background: p.inkSoft, opacity: 0.2 }} />
+      <div className="absolute right-5 top-1/2 -translate-y-1/2 w-px h-20" style={{ background: p.inkSoft, opacity: 0.2 }} />
+
+      {/* Top-left: nombre del evento */}
+      {room?.event_name && (
+        <div
+          className="absolute top-8 left-10 font-serif italic"
+          style={{ fontSize: '1.05rem', color: p.accent, letterSpacing: '0.01em' }}
+        >
+          {room.event_name}
+        </div>
+      )}
+
+      {/* Top-right: fecha */}
+      {room?.event_date && (
+        <div
+          className="absolute top-9 right-10"
+          style={{ fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: p.inkSoft }}
+        >
+          {new Date(room.event_date).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })}
+        </div>
+      )}
+
       {/* Contenido central */}
-      <div className="relative z-10 flex flex-col items-center text-center px-16 max-w-5xl w-full">
+      <div className="relative z-10 flex flex-col items-center text-center px-20 max-w-5xl w-full">
+        {/* Label */}
+        <div
+          className="mb-8"
+          style={{ fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: p.inkSoft }}
+        >
+          Deseos para los novios
+        </div>
+
         <AnimatePresence mode="wait">
-          <motion.div key={wish.id} className="flex flex-col items-center gap-8 w-full">
+          <motion.div key={wish.id} className="flex flex-col items-center gap-6 w-full">
+            {/* Texto del deseo */}
             <motion.p
               variants={messageVariants}
               initial="initial" animate="animate" exit="exit"
-              className="font-light leading-snug"
+              className="font-serif leading-snug"
               style={{
                 fontSize,
-                color: 'white',
-                textShadow: `0 0 60px ${theme.glow}, 0 4px 24px rgba(0,0,0,0.7)`,
+                color: p.ink,
+                fontStyle: isShort ? 'italic' : 'normal',
                 letterSpacing: '-0.01em',
+                maxWidth: '760px',
+                textWrap: 'balance',
+                fontWeight: 400,
               }}
             >
               {wish.message}
             </motion.p>
 
-            <motion.div variants={authorVariants} initial="initial" animate="animate" exit="exit"
-              className="flex items-center gap-3">
-              <div className="h-px w-8" style={{ background: theme.accent, opacity: 0.5 }} />
-              <p className="text-lg font-medium tracking-wide" style={{ color: theme.accent }}>
+            {/* Autor */}
+            <motion.div
+              variants={authorVariants}
+              initial="initial" animate="animate" exit="exit"
+              className="flex items-center gap-3"
+            >
+              <div className="h-px w-8" style={{ background: p.accent, opacity: 0.5 }} />
+              <p
+                className="font-serif italic"
+                style={{ fontSize: '1.2rem', color: p.accent, fontWeight: 400 }}
+              >
                 {wish.display_name || wish.guest_name}
               </p>
-              <div className="h-px w-8" style={{ background: theme.accent, opacity: 0.5 }} />
+              <div className="h-px w-8" style={{ background: p.accent, opacity: 0.5 }} />
             </motion.div>
           </motion.div>
         </AnimatePresence>
       </div>
 
-      {/* Dots + contador */}
-      <div className="absolute bottom-10 left-0 right-0 flex flex-col items-center gap-4 z-10">
+      {/* Bottom-left: hint QR */}
+      <div
+        className="absolute bottom-8 left-10"
+        style={{ fontSize: '0.6rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: p.inkSoft, opacity: 0.6 }}
+      >
+        Sumá tu deseo · QR en cada mesa
+      </div>
+
+      {/* Bottom-right: dots + contador */}
+      <div className="absolute bottom-7 right-10 flex flex-col items-end gap-3 z-10">
         {wishes.length > 1 && (
-          <div className="flex gap-3 items-center">
+          <div className="flex gap-2 items-center">
             {wishes.map((_, i) => (
-              <button key={i}
+              <button
+                key={i}
                 onClick={() => { clearInterval(intervalRef.current); setActiveIdx(i) }}
                 className="rounded-full transition-all duration-500"
                 style={{
-                  width: i === activeIdx ? '2rem' : '6px',
-                  height: '6px',
-                  background: i === activeIdx ? theme.accent : 'rgba(255,255,255,0.2)',
-                  boxShadow: i === activeIdx ? `0 0 12px ${theme.accent}` : 'none',
+                  width: i === activeIdx ? '1.5rem' : '5px',
+                  height: '5px',
+                  background: i === activeIdx ? p.accent : `${p.inkSoft}44`,
                 }}
               />
             ))}
           </div>
         )}
-        <p className="text-xs tracking-[0.2em] uppercase" style={{ color: theme.accent, opacity: 0.4 }}>
-          {activeIdx + 1} / {wishes.length} deseos
+        <p
+          className="font-serif italic"
+          style={{ fontSize: '0.8rem', color: p.inkSoft, fontVariantNumeric: 'tabular-nums' }}
+        >
+          {String(activeIdx + 1).padStart(2, '0')} / {String(wishes.length).padStart(2, '0')}
         </p>
       </div>
     </div>
