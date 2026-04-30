@@ -37,7 +37,7 @@ function PageShell({ children, useGrad = false }) {
 /* ─── PageLabel ───────────────────────────────────────────── */
 function PageLabel({ n, total, label }) {
   return (
-    <div style={{
+    <div className="no-print" style={{
       fontSize: 10,
       letterSpacing: '0.15em',
       textTransform: 'uppercase',
@@ -426,8 +426,34 @@ export default function DeseosWishPrintPage() {
         @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=DM+Sans:wght@400;500;600&display=swap');
         @media print {
           .no-print { display: none !important; }
-          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          @page { margin: 1cm; }
+          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0; padding: 0; }
+          @page { margin: 0; size: A4 portrait; }
+          .print-book {
+            padding: 0 !important;
+            gap: 0 !important;
+            background: transparent !important;
+            display: block !important;
+            min-height: 0 !important;
+          }
+          .print-page {
+            break-after: page;
+            page-break-after: always;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          .print-page:last-child {
+            break-after: avoid;
+            page-break-after: avoid;
+          }
+          .print-page > div {
+            width: 100% !important;
+            height: 100% !important;
+            box-shadow: none !important;
+          }
         }
         * { box-sizing: border-box; }
       `}</style>
@@ -478,10 +504,10 @@ export default function DeseosWishPrintPage() {
       </div>
 
       {/* Libro */}
-      <div style={{
+      <div className="print-book" style={{
         background: '#e8e6e0',
         minHeight: '100vh',
-        paddingTop: 80, // espacio para la barra
+        paddingTop: 80,
         paddingBottom: 60,
         display: 'flex',
         flexDirection: 'column',
@@ -490,28 +516,34 @@ export default function DeseosWishPrintPage() {
         fontFamily: '"DM Sans", system-ui, sans-serif',
       }}>
         <PageLabel n={1} total={totalPages} label="Portada" />
-        <CoverPage room={room} wishCount={wishes.length} />
+        <div className="print-page">
+          <CoverPage room={room} wishCount={wishes.length} />
+        </div>
 
         {wishes.length === 0 ? (
-          <div style={{ color: P.inkSoft, fontSize: 13, padding: '40px 0' }}>
+          <div className="no-print" style={{ color: P.inkSoft, fontSize: 13, padding: '40px 0' }}>
             No hay deseos aprobados todavía.
           </div>
         ) : (
           internalPages.map((pageWishes, i) => (
             <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
               <PageLabel n={i + 2} total={totalPages} label={`Página ${i + 1}`} />
-              <InternalPage
-                wishes={pageWishes}
-                room={room}
-                pageNum={i + 1}
-                totalPages={internalPages.length}
-              />
+              <div className="print-page">
+                <InternalPage
+                  wishes={pageWishes}
+                  room={room}
+                  pageNum={i + 1}
+                  totalPages={internalPages.length}
+                />
+              </div>
             </div>
           ))
         )}
 
         <PageLabel n={totalPages} total={totalPages} label="Contraportada" />
-        <BackPage room={room} wishes={wishes} />
+        <div className="print-page">
+          <BackPage room={room} wishes={wishes} />
+        </div>
       </div>
     </>
   )
